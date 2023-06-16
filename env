@@ -1,0 +1,12 @@
+docker run --name mysql-landlord -p 3306:3306 -d -e MYSQL_ROOT_PASSWORD=123456 mysql:latest
+
+docker exec -it mysql-landlord /bin/bash
+
+创建名为landlord的database
+mysql -h 127.0.0.1 -p123456 -e 'create database landlord default charset utf8'
+
+进入数据库
+mysql -h 127.0.0.1 -p
+
+查看数据库
+show databases;

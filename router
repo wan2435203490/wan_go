@@ -1,0 +1,32 @@
+
+auth
+    /login
+    /qqlogin
+users
+    /users
+    /users/myself
+player
+    /player/cards
+    /player/round
+    /player/ready
+    /player/pass
+    /player/bidding
+rooms
+    /rooms list
+    /rooms/${id}
+    /rooms create
+    /rooms/join
+    /rooms/exit
+games
+    /games/ready
+    /games/unReady
+    /games/cards
+    /games/bid
+    /games/play
+    /games/pass
+chat
+    /chat
+achievement
+    /achievement/id
+ws
+    ws://localhost/ws?token=${token}
