@@ -10,6 +10,7 @@ import (
 	"wan_go/pkg/common/db/mysql/blog"
 	"wan_go/pkg/common/db/mysql/blog/db_user"
 	"wan_go/pkg/common/log"
+	"wan_go/pkg/utils"
 	blogVO "wan_go/pkg/vo/blog"
 )
 
@@ -77,16 +78,16 @@ func GetFamilyList() []*blogVO.FamilyVO {
 	return families
 }
 
-func commentCountKey(source int, typ string) string {
-	return fmt.Sprintf(blog_const.COMMENT_COUNT_CACHE + strconv.Itoa(source) + "_" + typ)
+func commentCountKey(source int32, typ string) string {
+	return fmt.Sprintf(blog_const.COMMENT_COUNT_CACHE + utils.Int32ToString(source) + "_" + typ)
 }
 
-func GetCommentCount(source int, typ string) int64 {
+func GetCommentCount(source int32, typ string) int {
 
 	key := commentCountKey(source, typ)
 
 	if get, b := cache.Get(key); b {
-		return get.(int64)
+		return get.(int)
 	}
 
 	var count int64
@@ -100,14 +101,14 @@ func GetCommentCount(source int, typ string) int64 {
 
 	cache.Set(key, count)
 
-	return count
+	return int(count)
 }
 
-func GetUserArticleIds(userId int) []int {
+func GetUserArticleIds(userId int) *[]int {
 
 	key := blog_const.COMMENT_COUNT_CACHE + strconv.Itoa(userId)
 	if get, b := cache.Get(key); b {
-		return get.([]int)
+		return get.(*[]int)
 	}
 
 	var ret []int
@@ -120,9 +121,9 @@ func GetUserArticleIds(userId int) []int {
 		return nil
 	}
 
-	cache.Set(key, ret)
+	cache.Set(key, &ret)
 
-	return ret
+	return &ret
 }
 
 // CountSort CountLabel Maybe use one struct ?
@@ -138,12 +139,14 @@ type CountLabel struct {
 
 func CacheSort() {
 	info := GetSortInfo()
-	if len(info) > 0 {
+	if len(*info) > 0 {
 		cache.Set(blog_const.SORT_INFO, info)
+	} else {
+		cache.Delete(blog_const.SORT_INFO)
 	}
 }
 
-func GetSortInfo() []*blog.Sort {
+func GetSortInfo() *[]*blog.Sort {
 
 	var sorts []*blog.Sort
 	if err := DB().Find(&sorts).Error; err != nil {
@@ -210,5 +213,5 @@ func GetSortInfo() []*blog.Sort {
 		sort.Labels = sortLabels
 	}
 
-	return sorts
+	return &sorts
 }

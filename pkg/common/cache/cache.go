@@ -7,6 +7,7 @@ import (
 	"wan_go/pkg/common/config"
 	"wan_go/pkg/common/constant/blog_const"
 	"wan_go/pkg/common/db/mysql/blog"
+	"wan_go/pkg/utils"
 	//blogVO "wan_go/pkg/vo/blog"
 )
 
@@ -43,6 +44,44 @@ func GetAdminUser() *blog.User {
 		return get.(*blog.User)
 	}
 	return nil
+}
+
+func GetAdminUserId() int {
+	if admin := GetAdminUser(); admin != nil {
+		return int(admin.ID)
+	}
+	return -1
+}
+
+// GetUser todo unimplemented
+func GetUser() *blog.User {
+	token := "Header(blog_const.TOKEN_HEADER)"
+	if get, b := Get(token); b {
+		return get.(*blog.User)
+	}
+	return nil
+}
+
+func GetUserId() int {
+	if user := GetUser(); user != nil {
+		return int(user.ID)
+	}
+	return -1
+}
+
+func GetUserIdStr() string {
+	if user := GetUser(); user != nil {
+		return utils.Int32ToString(user.ID)
+	}
+	return ""
+}
+
+func GetUserName() string {
+	user := GetUser()
+	if user != nil {
+		return user.UserName
+	}
+	return ""
 }
 
 func GetWebInfo() *blog.WebInfo {

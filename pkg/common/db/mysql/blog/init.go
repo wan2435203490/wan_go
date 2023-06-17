@@ -64,6 +64,7 @@ func InitMysql(DB *db.DataBases) {
 			Colorful:                  true,                                                                // Disable color
 		},
 	)
+
 	db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
 		Logger: newLogger,
 	})

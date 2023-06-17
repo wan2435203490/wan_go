@@ -48,7 +48,7 @@ func Logout(c *gin.Context) {
 	token := a.GetToken()
 	userId := a.GetCurrentUserId()
 	db_user.Exit(token, userId)
-	a.Success()
+	a.OK()
 }
 
 func UpdateUserInfo(c *gin.Context) {
@@ -95,7 +95,7 @@ func GetCaptcha(c *gin.Context) {
 
 	cache.SetExpire(a.KeyUserId(blog_const.USER_CODE)+"_"+flag, captcha, time.Minute*5)
 
-	a.Success()
+	a.OK()
 }
 
 // GetCaptchaForBind
@@ -120,7 +120,7 @@ func GetCaptchaForBind(c *gin.Context) {
 
 	cache.SetExpire(a.KeyUserId(blog_const.USER_CODE)+"_"+place+"_"+flag, captcha, time.Minute*5)
 
-	a.Success()
+	a.OK()
 }
 
 // UpdateSecretInfo
@@ -163,7 +163,7 @@ func GetCaptchaForForgetPassword(c *gin.Context) {
 
 	cache.SetExpire(blog_const.FORGET_PASSWORD+place+"_"+flag, captcha, time.Minute*5)
 
-	a.Success()
+	a.OK()
 }
 
 // UpdateForForgetPassword
@@ -182,7 +182,7 @@ func UpdateForForgetPassword(c *gin.Context) {
 		return
 	}
 
-	a.Success()
+	a.OK()
 }
 
 func GetUserByUsername(c *gin.Context) {
@@ -191,7 +191,7 @@ func GetUserByUsername(c *gin.Context) {
 }
 
 func sendMail(captcha, email string) {
-	mails := make([]string, 1)
+	mails := make([]string, 0)
 	mails = append(mails, email)
 	webName := cache.GetWebName()
 	codeMail := getCodeMail(captcha, webName)

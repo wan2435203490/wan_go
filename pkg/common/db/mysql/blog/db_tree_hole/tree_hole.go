@@ -6,6 +6,7 @@ import (
 	"wan_go/pkg/common/constant/blog_const"
 	"wan_go/pkg/common/db"
 	"wan_go/pkg/common/db/mysql/blog"
+	blogVO "wan_go/pkg/vo/blog"
 )
 
 func Get(data *blog.TreeHole) error {
@@ -47,4 +48,13 @@ func List() (result []*blog.TreeHole) {
 	}
 
 	return
+}
+
+func ListBossTreeHole(vo *blogVO.BaseRequestVO[*blog.TreeHole]) {
+
+	var comments []*blog.TreeHole
+
+	db.Page(&vo.Pagination).Order("CreatedAt DESC").Find(&comments)
+
+	vo.SetRecords(&comments)
 }

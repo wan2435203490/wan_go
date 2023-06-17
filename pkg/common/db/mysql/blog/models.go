@@ -2,7 +2,6 @@ package blog
 
 import (
 	"gorm.io/gorm"
-	"wan_go/pkg/vo/blog"
 )
 
 //todo tinyint or bit
@@ -248,15 +247,26 @@ func (to *WebInfo) Copy(from *WebInfo) {
 	to.Status = from.Status
 }
 
-func (to *ResourcePath) Copy(from *blog.ResourcePathVO) {
+func (to *Sort) Copy(from *Sort) {
 	to.ID = from.ID
-	to.Title = from.Title
-	to.Classify = from.Classify
-	to.Cover = from.Cover
-	to.Url = from.Url
-	to.Introduction = from.Introduction
-	to.Type = from.Type
-	to.Status = from.Status
-	to.Remark = from.Remark
-	to.CreatedAt = from.CreatedAt
+	to.SortName = from.SortName
+	to.SortDescription = from.SortDescription
+	to.SortType = from.SortType
+	to.Priority = from.Priority
+	to.CountOfSort = from.CountOfSort
+	to.Labels = from.Labels
+}
+
+func (to *Label) Copy(from *Label) {
+	to.ID = from.ID
+	to.SortId = from.SortId
+	to.LabelName = from.LabelName
+	to.LabelDescription = from.LabelDescription
+	to.CountOfLabel = from.CountOfLabel
+}
+
+// BeforeDelete Hook
+func (u *Article) BeforeDelete(tx *gorm.DB) (err error) {
+
+	return
 }

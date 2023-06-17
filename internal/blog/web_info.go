@@ -55,7 +55,7 @@ func UpdateWebInfo(c *gin.Context) {
 	//设置没有过期时间的KEY 带上过期时间用cache.DefaultExpiration
 	cache.Set(blog_const.WEB_INFO, list[0])
 
-	a.Success()
+	a.OK()
 }
 
 // GetWebInfo 获取网站信息
@@ -75,7 +75,7 @@ func GetWebInfo(c *gin.Context) {
 		a.OK(ret)
 	}
 
-	a.Success()
+	a.OK()
 }
 
 // GetAdmire 获取赞赏
@@ -87,10 +87,10 @@ func GetAdmire(c *gin.Context) {
 // GetSortInfo 获取分类标签信息
 func GetSortInfo(c *gin.Context) {
 	if get, b := cache.Get(blog_const.SORT_INFO); b {
-		a.OK(get.([]*blog.Sort))
+		a.OK(get.(*[]*blog.Sort))
 	}
 
-	a.Success()
+	a.OK()
 }
 
 // GetWifeJson 获取看板娘消息
@@ -124,14 +124,29 @@ func SaveResourcePath(c *gin.Context) {
 		}
 	}
 
-	resourcePath := blog.ResourcePath{}
-	resourcePath.Copy(&resourcePathVO)
+	resourcePath := CopyResourcePath(&resourcePathVO)
 
-	if a.IsError(db_resource_path.Insert(&resourcePath)) {
+	if a.IsError(db_resource_path.Insert(resourcePath)) {
 		return
 	}
 
-	a.Success()
+	a.OK()
+}
+
+func CopyResourcePath(from *blogVO.ResourcePathVO) *blog.ResourcePath {
+
+	to := blog.ResourcePath{}
+	to.ID = from.ID
+	to.Title = from.Title
+	to.Classify = from.Classify
+	to.Cover = from.Cover
+	to.Url = from.Url
+	to.Introduction = from.Introduction
+	to.Type = from.Type
+	to.Status = from.Status
+	to.Remark = from.Remark
+	to.CreatedAt = from.CreatedAt
+	return &to
 }
 
 // SaveFriend 保存友链
@@ -153,7 +168,7 @@ func SaveFriend(c *gin.Context) {
 		return
 	}
 
-	a.Success()
+	a.OK()
 }
 
 func copyResourcePath(vo *blogVO.ResourcePathVO) *blog.ResourcePath {
@@ -204,14 +219,13 @@ func UpdateResourcePath(c *gin.Context) {
 		}
 	}
 
-	resourcePath := blog.ResourcePath{}
-	resourcePath.Copy(&resourcePathVO)
+	resourcePath := CopyResourcePath(&resourcePathVO)
 
-	if a.IsError(db_resource_path.Update(&resourcePath)) {
+	if a.IsError(db_resource_path.Update(resourcePath)) {
 		return
 	}
 
-	a.Success()
+	a.OK()
 }
 
 // ListResourcePath 查询资源
@@ -307,7 +321,7 @@ func SaveTreeHole(c *gin.Context) {
 		//treeHole.Avatar = randomAvatars
 	}
 
-	a.Success()
+	a.OK()
 
 }
 
@@ -320,7 +334,7 @@ func ListTreeHole(c *gin.Context) {
 
 	treeHoles := db_tree_hole.List()
 	if treeHoles == nil {
-		a.Success()
+		a.OK()
 	}
 
 	for _, treeHole := range treeHoles {
@@ -355,7 +369,7 @@ func SaveSort(c *gin.Context) {
 
 	db_common.CacheSort()
 
-	a.Success()
+	a.OK()
 }
 
 func DeleteSort(c *gin.Context) {
@@ -406,7 +420,7 @@ func SaveLabel(c *gin.Context) {
 
 	db_common.CacheSort()
 
-	a.Success()
+	a.OK()
 }
 
 func DeleteLabel(c *gin.Context) {

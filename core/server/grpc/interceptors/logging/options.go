@@ -219,7 +219,7 @@ func DefaultMessageProducer(ctx context.Context, msg string, level logger.Level,
 	fields.Set("grpc.code", code.String())
 	ctxlog.Extract(ctx).WithFields(fields.Values()).Log(level, msg, err)
 	//if err != nil {
-	//	ctxlog.Extract(ctx).WithFields(fields.Values()).Err(msg, err)
+	//	ctxlog.Extract(ctx).WithFields(fields.Values()).CodeMsg(msg, err)
 	//	return
 	//}
 	//ctxlog.Extract(ctx).WithFields(fields.Values()).Info(msg)

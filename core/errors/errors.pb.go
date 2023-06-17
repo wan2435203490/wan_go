@@ -66,7 +66,7 @@ func (x *Error) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use Err.ProtoReflect.Descriptor instead.
+// Deprecated: Use CodeMsg.ProtoReflect.Descriptor instead.
 func (*Error) Descriptor() ([]byte, []int) {
 	return file_errors_proto_rawDescGZIP(), []int{0}
 }
@@ -149,7 +149,7 @@ func file_errors_proto_rawDescGZIP() []byte {
 
 var file_errors_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
 var file_errors_proto_goTypes = []interface{}{
-	(*Error)(nil), // 0: errors.Err
+	(*Error)(nil), // 0: errors.CodeMsg
 }
 var file_errors_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type

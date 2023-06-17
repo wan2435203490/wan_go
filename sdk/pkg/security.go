@@ -24,7 +24,7 @@ func generateRandString(length int, s string) string {
 	i := 0
 	for {
 		if _, err := rand.Read(r); err != nil {
-			panic("Err reading random bytes: " + err.Error())
+			panic("CodeMsg reading random bytes: " + err.Error())
 		}
 		for _, rb := range r {
 			c := int(rb)

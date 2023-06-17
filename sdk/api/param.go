@@ -3,17 +3,61 @@ package api
 import (
 	vd "github.com/bytedance/go-tagexpr/v2/validator"
 	"github.com/gin-gonic/gin/binding"
+	"net/http"
 	"reflect"
+	"strconv"
+	"wan_go/pkg/utils"
 )
 
-// Param maybe must？
-func (a *Api) Param(key string) string {
+func (a *Api) Param(key string) (value string) {
+
+	value = a.Context.Param(key)
+	if value == "" {
+		a.Context.AbortWithStatusJSON(http.StatusBadRequest, key+" is empty")
+	}
+
+	return
+}
+
+func (a *Api) StringFailed(parseStr *string, key string) (failed bool) {
+
+	*parseStr = a.Context.Param(key)
+	if *parseStr == "" {
+		a.Context.AbortWithStatusJSON(http.StatusBadRequest, key+" is empty")
+		failed = true
+	}
+
+	return
+}
+
+func (a *Api) BoolFailed(parseBool *bool, key string) (failed bool) {
 
 	value := a.Context.Param(key)
-	if value == "" {
-		a.ErrorInternal(key + " is empty")
+
+	aBool, err := strconv.ParseBool(value)
+
+	if value == "" || err != nil {
+		a.Context.AbortWithStatusJSON(http.StatusBadRequest, key+" is empty")
+		failed = true
 	}
-	return value
+
+	*parseBool = aBool
+
+	return
+}
+
+func (a *Api) IntFailed(parseInt *int, key string) (failed bool) {
+
+	value := a.Context.Param(key)
+
+	if value == "" {
+		a.Context.AbortWithStatusJSON(http.StatusBadRequest, key+" is empty")
+		failed = true
+	}
+
+	*parseInt = utils.StringToInt(value)
+
+	return
 }
 
 // BindFailed validate && write error json response if error

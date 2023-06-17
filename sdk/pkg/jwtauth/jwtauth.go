@@ -157,10 +157,10 @@ var (
 	ErrMissingAuthenticatorFunc = errors.New("ginJWTMiddleware.Authenticator func is undefined")
 
 	// ErrMissingLoginValues indicates a db_user tried to authenticate without username or password
-	ErrMissingLoginValues = errors.New("missing Username or Password or Code")
+	ErrMissingLoginValues = errors.New("missing UserName or Password or Code")
 
 	// ErrFailedAuthentication indicates authentication failed, could be faulty username or password
-	ErrFailedAuthentication = errors.New("incorrect Username or Password")
+	ErrFailedAuthentication = errors.New("incorrect UserName or Password")
 
 	// ErrFailedTokenCreation indicates JWT Token failed to create, reason unknown
 	ErrFailedTokenCreation = errors.New("failed to create JWT Token")

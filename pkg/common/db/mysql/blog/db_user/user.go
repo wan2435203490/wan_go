@@ -391,11 +391,11 @@ func validateCaptcha(key, captcha string, userVO *blogVO.UserVO, fun func()) boo
 	}
 }
 
-func WrapError(msg string) *api.Err {
-	return &api.Err{ErrMsg: msg}
+func WrapError(msg string) *api.CodeMsg {
+	return &api.CodeMsg{ErrMsg: msg}
 }
 
-func UpdateForForgetPassword(place, flag, captcha, password string) *api.Err {
+func UpdateForForgetPassword(place, flag, captcha, password string) *api.CodeMsg {
 
 	password, _ = utils.AesDecryptByString(password, blog_const.CRYPOTJS_KEY)
 
@@ -509,6 +509,20 @@ func ListUser(vo *blogVO.BaseRequestVO[*blog.User]) {
 
 	vo.Total = len(users)
 	vo.Records = users
+}
+
+func UpdateUserStatus(userId int, userStatus bool) {
+	db.Mysql().Model(&blog.User{ID: int32(userId)}).Where("user_status=?", !userStatus).
+		Update("user_status", userStatus)
+}
+
+func UpdateAdmire(userId int, admire string) {
+	db.Mysql().Model(&blog.User{ID: int32(userId)}).Update("admire", admire)
+	cache.Delete(blog_const.ADMIRE)
+}
+
+func UpdateUserType(userId int, userType int) {
+	db.Mysql().Model(&blog.User{ID: int32(userId)}).Update("user_type", userType)
 }
 
 func Update(user *blog.User) error {

@@ -1,5 +1,7 @@
 package blog_const
 
+import "time"
+
 var (
 	ADMIN_USER_ID        = 1
 	USER_TOKEN           = "user_token_"
@@ -9,14 +11,14 @@ var (
 	USER_ACCESS_TOKEN    = "user_access_token_"
 	ADMIN_ACCESS_TOKEN   = "admin_access_token_"
 	TOKEN_HEADER         = "Authorization"
-	TOKEN_EXPIRE         = 864000
+	TOKEN_EXPIRE         = time.Hour * 24
 	TOKEN_INTERVAL       = 3600
 	ADMIN                = "admin"
 	ADMIN_FAMILY         = "adminFamily"
 	FAMILY_LIST          = "familyList"
 	COMMENT_IM_MAIL      = "comment_im_mail_"
 
-	COMMENT_IM_MAIL_COUNT = "1"
+	COMMENT_IM_MAIL_COUNT int32 = 1
 
 	/**
 	 * 验证码

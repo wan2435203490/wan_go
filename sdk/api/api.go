@@ -46,7 +46,7 @@ func (a *Api) IsError(err error) bool {
 }
 
 //func (a *Api) Build(c *gin.Context, s service.IService, d interface{}, bindings ...binding.Binding) error {
-//	return a.MakeContext(c).MakeOrm().BindFailed(d, bindings...).MakeService(s.Get()).Err
+//	return a.MakeContext(c).MakeOrm().BindFailed(d, bindings...).MakeService(s.Get()).CodeMsg
 //}
 
 // MakeContext 设置http上下文

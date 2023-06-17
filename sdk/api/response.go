@@ -46,23 +46,33 @@ func (pagination *Pagination) Order() string {
 	return order
 }
 
-type Err struct {
+type CodeMsg struct {
+	Code   int    `json:"-"`
 	ErrMsg string `json:"-"`
 }
 
-// Success todo OK Success Done 重新定义
-func (a *Api) Success() {
-	a.OK(nil)
-}
+var (
+	PARAMETER_ERROR = CodeMsg{400, "参数异常！"}
+	NOT_LOGIN       = CodeMsg{300, "未登录，请登录后再进行操作！"}
+	LOGIN_EXPIRED   = CodeMsg{300, "登录已过期，请重新登录！"}
+	SYSTEM_REPAIR   = CodeMsg{301, "系统维护中，敬请期待！"}
+	FAIL            = CodeMsg{500, "服务异常！"}
+)
 
 func (a *Api) Done(err error) {
-	if a.IsError(err) {
-		return
+	if !a.IsError(err) {
+		a.OK()
 	}
-	a.Success()
 }
 
-func (a *Api) OK(data any) {
+func (a *Api) DoneApiErr(apiErr *CodeMsg) {
+	if len(apiErr.ErrMsg) == 0 {
+		a.OK()
+	}
+	a.ErrorInternal(apiErr.ErrMsg)
+}
+
+func (a *Api) OK(data ...any) {
 
 	//todo 校验errmsg
 	//if reflect.TypeOf(data)
@@ -75,6 +85,9 @@ func (a *Api) OK(data any) {
 
 	a.Context.JSON(http.StatusOK, res)
 	log.Printf("%#v\n", data)
+}
+func (a *Api) CodeError(msg CodeMsg) {
+	a.Error(msg.Code, msg.ErrMsg)
 }
 
 func (a *Api) Error(httpStatus int, msg string) {
@@ -91,6 +104,7 @@ func (a *Api) ErrorInternal(msg string) {
 	a.Error(http.StatusInternalServerError, msg)
 }
 
+// IsFailed named what?
 func (a *Api) IsFailed(cond bool, msg string) bool {
 
 	if cond {
