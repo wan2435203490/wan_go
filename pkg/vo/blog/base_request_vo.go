@@ -1,10 +1,12 @@
 package blog
 
-import "wan_go/sdk/api"
+import (
+	r "wan_go/pkg/common/response"
+)
 
 type BaseRequestVO[T any] struct {
-	api.Pagination
-	api.CodeMsg
+	r.Pagination
+	r.CodeMsg
 	Records        []T    `json:"records,omitempty"`
 	Order          string `json:"order,omitempty"`
 	Source         int32  `json:"source,omitempty"`

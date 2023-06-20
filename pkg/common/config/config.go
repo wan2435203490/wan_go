@@ -65,7 +65,6 @@ type config struct {
 		UserName      string   `yaml:"userName"`
 		Password      string   `yaml:"password"`
 		DatabaseName  string   `yaml:"databaseName"`
-		TableName     string   `yaml:"tableName"`
 		MsgTableNum   int      `yaml:"msgTableNum"`
 		MaxOpenConns  int      `yaml:"maxOpenConns"`
 		MaxIdleConns  int      `yaml:"maxIdleConns"`

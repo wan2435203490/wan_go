@@ -24,5 +24,6 @@ func WithLimit(c *gin.Context) {
 
 	if !limiter.(*rate.Limiter).Allow() {
 		c.AbortWithStatusJSON(http.StatusTooManyRequests, "请求过于频繁")
+		return
 	}
 }

@@ -8,7 +8,7 @@ import (
 type Option func(*Options)
 
 type Options struct {
-	// The logging level the logger should log at. default is `InfoLevel`
+	// The logging level the logger should logs at. default is `InfoLevel`
 	Level Level
 	// fields to always be logged
 	Fields map[string]interface{}

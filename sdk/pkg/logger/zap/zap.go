@@ -47,7 +47,7 @@ func (l *zaplog) Init(opts ...logger.Option) error {
 		skip = 1
 	}
 
-	// Set log Level if not default
+	// Set logs Level if not default
 	zapConfig.Level = zap.NewAtomicLevel()
 	if l.opts.Level != logger.InfoLevel {
 		zapConfig.Level.SetLevel(loggerToZapLevel(l.opts.Level))
@@ -60,7 +60,7 @@ func (l *zaplog) Init(opts ...logger.Option) error {
 		zapConfig.Level)
 
 	log := zap.New(logCore, zap.AddCaller(), zap.AddCallerSkip(skip), zap.AddStacktrace(zap.DPanicLevel))
-	//log, err := zapConfig.Build(zap.AddCallerSkip(skip))
+	//logs, err := zapConfig.Build(zap.AddCallerSkip(skip))
 	//if err != nil {
 	//	return err
 	//}
@@ -79,7 +79,7 @@ func (l *zaplog) Init(opts ...logger.Option) error {
 		log = log.With(zap.Namespace(namespace))
 	}
 
-	// defer log.Sync() ??
+	// defer logs.Sync() ??
 
 	l.cfg = zapConfig
 	l.zap = log

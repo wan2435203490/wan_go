@@ -88,7 +88,7 @@ func (l *defaultLogger) Logf(level Level, format string, v ...interface{}) {
 }
 
 func (l *defaultLogger) logf(level Level, format string, v ...interface{}) {
-	// TODO decide does we need to write message if log level not used?
+	// TODO decide does we need to write message if logs level not used?
 	if !l.opts.Level.Enabled(level) {
 		return
 	}
@@ -147,7 +147,7 @@ func (l *defaultLogger) logf(level Level, format string, v ...interface{}) {
 	}
 	_, err := l.opts.Out.Write([]byte(logStr))
 	if err != nil {
-		log.Printf("log [Logf] write error: %s \n", err.Error())
+		log.Printf("logs [Logf] write error: %s \n", err.Error())
 	}
 
 }

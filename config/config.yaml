@@ -11,15 +11,15 @@ user:
 
 mail:
   host: smtp.qq.com
-  userName: Wan <2435203490@qq.com>
-  password: ijbclqpjiwzrdjda
+  userName: 2435203490@qq.com
+  password:
   defaultEncoding: utf-8
   protocol: smtp
-  port: 465
+  port: 587
   properties:
     smtp:
       socketFactory:
-        port: 465
+        port: 587
         class: javax.net.ssl.SSLSocketFactory
       ssl:
         enable: true
@@ -36,7 +36,7 @@ log:
   elasticSearchPassword: ""
 
 landlords:
-  frontend-host: landlords.xxx.com
+  frontend-host: landlords.2fun.top
   max_seconds_for_every_round: 30
 
 session:
@@ -57,11 +57,10 @@ database:
 #  password:
 
 mysql:
-  address: [ docker.for.mac.localhost:13306 ] #mysql地址 目前仅支持单机，默认即可
+  address: [ docker.for.mac.localhost:3306 ] #mysql地址 目前仅支持单机，默认即可
   userName: root #mysql用户名，建议修改
   password: 123456 # mysql密码，建议修改
   databaseName: poetize #默认即可
-  tableName: eMsg #默认即可
   msgTableNum: 1
   maxOpenConns: 100
   maxIdleConns: 10

@@ -39,20 +39,20 @@ type options struct {
 
 type Option func(*options)
 
-// CodeToLevel function defines the mapping between gRPC return codes and interceptor log level.
+// CodeToLevel function defines the mapping between gRPC return codes and interceptor logs level.
 type CodeToLevel func(code codes.Code) logger.Level
 
 // DurationToField function defines how to produce duration fields for logging
 type DurationToField func(duration time.Duration) ctxlog.Fields
 
-// WithDecider customizes the function for deciding if the gRPC interceptor logs should log.
+// WithDecider customizes the function for deciding if the gRPC interceptor logs should logs.
 func WithDecider(f grpc_logging.Decider) Option {
 	return func(o *options) {
 		o.shouldLog = f
 	}
 }
 
-// WithLevels customizes the function for mapping gRPC return codes and interceptor log level statements.
+// WithLevels customizes the function for mapping gRPC return codes and interceptor logs level statements.
 func WithLevels(f CodeToLevel) Option {
 	return func(o *options) {
 		o.levelFunc = f
@@ -80,14 +80,14 @@ func WithMessageProducer(f MessageProducer) Option {
 	}
 }
 
-// WithTimestampFormat customizes the timestamps emitted in the log fields.
+// WithTimestampFormat customizes the timestamps emitted in the logs fields.
 func WithTimestampFormat(format string) Option {
 	return func(o *options) {
 		o.timestampFormat = format
 	}
 }
 
-// MessageProducer produces a db_user defined log message
+// MessageProducer produces a db_user defined logs message
 type MessageProducer func(ctx context.Context, msg string, level logger.Level, code codes.Code, err error, duration ctxlog.Fields)
 
 func evaluateServerOpt(opts []Option) *options {
@@ -110,7 +110,7 @@ func evaluateClientOpt(opts []Option) *options {
 	return optCopy
 }
 
-// DefaultCodeToLevel is the default implementation of gRPC return codes and interceptor log level for server side.
+// DefaultCodeToLevel is the default implementation of gRPC return codes and interceptor logs level for server side.
 func DefaultCodeToLevel(code codes.Code) logger.Level {
 	switch code {
 	case codes.OK:
@@ -152,7 +152,7 @@ func DefaultCodeToLevel(code codes.Code) logger.Level {
 	}
 }
 
-// DefaultClientCodeToLevel is the default implementation of gRPC return codes to log levels for client side.
+// DefaultClientCodeToLevel is the default implementation of gRPC return codes to logs levels for client side.
 func DefaultClientCodeToLevel(code codes.Code) logger.Level {
 	switch code {
 	case codes.OK:
@@ -202,7 +202,7 @@ func DurationToTimeMillisField(duration time.Duration) ctxlog.Fields {
 	return *ctxlog.NewFields("grpc.time_ms", durationToMilliseconds(duration))
 }
 
-// DurationToDurationField uses a Duration field to log the request duration
+// DurationToDurationField uses a Duration field to logs the request duration
 // and leaves it up to Zap's encoder settings to determine how that is output.
 func DurationToDurationField(duration time.Duration) map[string]interface{} {
 	return map[string]interface{}{"grpc.duration": duration}

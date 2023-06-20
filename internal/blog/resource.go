@@ -43,7 +43,7 @@ func DeleteResource(c *gin.Context) {
 
 	path = strings.ReplaceAll(path, blog_const.DOWNLOAD_URL, "")
 
-	utils.DeleteQiniuFile(&[]string{path})
+	utils.DeleteQiniuFile(path)
 
 	a.Done(db_resource.DeleteByPath(path))
 }
@@ -58,7 +58,7 @@ func GetResourceInfo(c *gin.Context) {
 			resourceMap[path] = resource.ID
 			keys = append(keys, path)
 		}
-		fileInfo := utils.GetQiniuFileInfo(&keys)
+		fileInfo := utils.BatchGetFiles(keys)
 		if len(fileInfo) > 0 {
 			var collect []*blog.Resource
 			for k, v := range fileInfo {

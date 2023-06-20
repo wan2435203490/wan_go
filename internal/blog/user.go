@@ -9,6 +9,7 @@ import (
 	"wan_go/pkg/common/constant/blog_const"
 	"wan_go/pkg/common/db/mysql/blog/db_user"
 	"wan_go/pkg/common/log"
+	"wan_go/pkg/common/mail"
 	"wan_go/pkg/utils"
 	blogVO "wan_go/pkg/vo/blog"
 )
@@ -102,23 +103,27 @@ func GetCaptcha(c *gin.Context) {
 // 绑定手机号或者邮箱
 // flag: 1 手机号 2 邮箱
 func GetCaptchaForBind(c *gin.Context) {
-	place := a.Param("place")
-	flag := a.Param("flag")
+	//place := a.Param("place")
+	//flag := a.Param("flag")
+	var param blogVO.Param
+	if a.BindFailed(&param) {
+		return
+	}
 
 	captcha := utils.CreateCaptcha(6)
 	user := a.GetCurrentUser()
 
-	switch flag {
-	case "1":
-		log.Info("GetCodeForBind", place+"---"+"手机验证码:"+captcha)
-	case "2":
-		log.Info("GetCodeForBind", place+"---"+"邮箱验证码:"+captcha)
+	switch param.Flag {
+	case 1:
+		log.Info("GetCodeForBind", param.Place+"---"+"手机验证码:"+captcha)
+	case 2:
+		log.Info("GetCodeForBind", param.Place+"---"+"邮箱验证码:"+captcha)
 		sendMail(captcha, user.Email)
 	default:
 		break
 	}
 
-	cache.SetExpire(a.KeyUserId(blog_const.USER_CODE)+"_"+place+"_"+flag, captcha, time.Minute*5)
+	cache.SetExpire(a.KeyUserId(blog_const.USER_CODE)+"_"+param.Place+"_"+param.FlagString(), captcha, time.Minute*5)
 
 	a.OK()
 }
@@ -129,16 +134,20 @@ func GetCaptchaForBind(c *gin.Context) {
 // 2 邮箱
 // 3 密码：place=老密码&password=新密码
 func UpdateSecretInfo(c *gin.Context) {
-	place := a.Param("place")
-	flag := a.Param("flag")
-	captcha := a.Param("code")
-	password := a.Param("password")
+	//place := a.Param("place")
+	//flag := a.Param("flag")
+	//captcha := a.Param("code")
+	//password := a.Param("password")
+	var param blogVO.Param
+	if a.BindFailed(&param) {
+		return
+	}
 
 	cache.Delete(a.KeyUserId(blog_const.USER_CACHE))
 
 	user := a.GetCurrentUser()
 
-	a.OK(db_user.UpdateSecretInfo(place, flag, captcha, password, user))
+	a.OK(db_user.UpdateSecretInfo(param.Place, param.FlagString(), param.Code, param.Password, user))
 }
 
 // GetCaptchaForForgetPassword
@@ -146,22 +155,30 @@ func UpdateSecretInfo(c *gin.Context) {
 // 1 手机号
 // 2 邮箱
 func GetCaptchaForForgetPassword(c *gin.Context) {
-	place := a.Param("place")
-	flag := a.Param("flag")
+	place := a.Query("place")
+	flag := a.QueryInt("flag")
+	param := blogVO.Param{Place: place, Flag: flag}
+	//err := c.ShouldBindUri(&param)
+	//if err != nil {
+	//	print(err)
+	//}
+	//if a.BindFailed(&param) {
+	//	return
+	//}
 
 	captcha := utils.CreateCaptcha(6)
 
-	switch flag {
-	case "1":
+	switch param.Flag {
+	case 1:
 		log.Info("GetCaptchaForForgetPassword", "手机验证码:"+captcha)
-	case "2":
+	case 2:
 		log.Info("GetCaptchaForForgetPassword", "邮箱验证码:"+captcha)
-		sendMail(captcha, place)
+		sendMail(captcha, param.Place)
 	default:
 		break
 	}
 
-	cache.SetExpire(blog_const.FORGET_PASSWORD+place+"_"+flag, captcha, time.Minute*5)
+	cache.SetExpire(blog_const.FORGET_PASSWORD+param.Place+"_"+param.FlagString(), captcha, time.Minute*5)
 
 	a.OK()
 }
@@ -178,7 +195,7 @@ func UpdateForForgetPassword(c *gin.Context) {
 
 	apiErr := db_user.UpdateForForgetPassword(place, flag, captcha, password)
 
-	if a.IsFailed(apiErr != nil, apiErr.ErrMsg) {
+	if a.IsFailed(apiErr != nil, apiErr.Msg) {
 		return
 	}
 
@@ -196,7 +213,7 @@ func sendMail(captcha, email string) {
 	webName := cache.GetWebName()
 	codeMail := getCodeMail(captcha, webName)
 
-	utils.SendMail(mails, "您有一封来自"+webName+"的回执！", codeMail)
+	mail.SendMail(mails, "您有一封来自"+webName+"的回执！", codeMail)
 }
 
 func getCodeMail(captcha, webName string) string {
@@ -208,9 +225,9 @@ func getCodeMail(captcha, webName string) string {
 	} else {
 		userName = admin.UserName
 	}
-	codeMail := fmt.Sprintf(utils.MailText,
+	codeMail := fmt.Sprintf(mail.MailText,
 		webName,
-		fmt.Sprintf(utils.ImMail, userName),
+		fmt.Sprintf(mail.ImMail, userName),
 		userName,
 		fmt.Sprintf(config.Config.User.CaptchaFormat, captcha),
 		"",

@@ -1,9 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"io"
+	//"logs"
 	"os"
+	"wan_go/core/logger"
 	"wan_go/internal/blog"
 	"wan_go/pkg/common/constant"
 	"wan_go/pkg/common/log"
@@ -12,11 +15,15 @@ import (
 func main() {
 	log.NewPrivateLog(constant.LogFileName)
 	gin.SetMode(gin.ReleaseMode)
-	f, _ := os.Create("../logs/blog.log")
+	f, err := os.Create("logs/blog.log")
+	fmt.Println(err)
 	gin.DefaultWriter = io.MultiWriter(f)
 	r := gin.Default()
 
+	log.NewInfo("111111", 90909)
 	blog.Init(r)
+
+	logger.Fatal(r.Run(":8081"))
 
 	//defaultPorts := config.Config.Blog.Port
 	//ginPort := flag.Int("port", defaultPorts[0], "get ginServerPort from cmd,default 10004 as port")
@@ -30,6 +37,6 @@ func main() {
 	//
 	//err := r.Run(address)
 	//if err != nil {
-	//	log.Error("", "run failed ", *ginPort, err.Error())
+	//	logs.Error("", "run failed ", *ginPort, err.Error())
 	//}
 }

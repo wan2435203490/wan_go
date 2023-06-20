@@ -3,11 +3,11 @@ package blog
 import (
 	"time"
 	"wan_go/pkg/common/db/mysql/blog"
-	"wan_go/sdk/api"
+	r "wan_go/pkg/common/response"
 )
 
 type ArticleVO struct {
-	api.CodeMsg
+	r.CodeMsg
 	ID     int32 `json:"id,omitempty"`
 	UserId int32 `json:"userId,omitempty"`
 	// 查询为空时，随机选择

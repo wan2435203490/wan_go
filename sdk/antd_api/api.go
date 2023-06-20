@@ -4,15 +4,13 @@ import (
 	"errors"
 	"fmt"
 	vd "github.com/bytedance/go-tagexpr/v2/validator"
+	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
-	"wan_go/sdk/service"
+	"gorm.io/gorm"
 	"net/http"
 	"strconv"
-
-	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 	"wan_go/core/logger"
-	"wan_go/sdk/api"
+	"wan_go/pkg/common/api"
 	"wan_go/sdk/pkg"
 	"wan_go/sdk/pkg/response/antd"
 )
@@ -119,12 +117,12 @@ func (e *Api) MakeOrm() *Api {
 	return e
 }
 
-func (e *Api) MakeService(c *service.Service) *Api {
-	c.Log = e.Logger
-	c.Orm = e.Orm
-	c.Context = e.Context
-	return e
-}
+//func (e *Api) MakeService(c *service.Service) *Api {
+//	c.Log = e.Logger
+//	c.Orm = e.Orm
+//	c.Context = e.Context
+//	return e
+//}
 
 func (e *Api) AddError(err error) {
 	if e.Errors == nil {

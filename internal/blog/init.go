@@ -19,10 +19,10 @@ var (
 
 func InitMiddleware(engine *gin.Engine) {
 	engine.Use(sessions.Sessions(config.Config.Session.Name, store))
-	engine.Use(middleware.WithCors, middleware.WithSession, middleware.WithLimit)
+	engine.Use(middleware.WithCors, middleware.WithLimit)
 	//engine.Use(RequestId(TrafficKey), api.SetRequestLogger)
 	//engine.Use(CustomError, NoCache)
-	//todo log permission
+	//todo logs permission
 }
 
 func Init(engine *gin.Engine) {
@@ -34,46 +34,124 @@ func Init(engine *gin.Engine) {
 	}
 	InitMiddleware(engine)
 
+	engine.Use(Api)
+
 	webInfo := engine.Group("/webInfo")
 	{
-		webInfo.Use(WebInfo)
 		webInfo.POST("/updateWebInfo", UpdateWebInfo)
-		webInfo.GET("/getWebInfo", UpdateWebInfo)
-		webInfo.GET("/getAdmire", UpdateWebInfo)
-		webInfo.GET("/getSortInfo", UpdateWebInfo)
-		webInfo.GET("/getWaifuJson", UpdateWebInfo)
-		webInfo.POST("/saveResourcePath", UpdateWebInfo)
-		webInfo.POST("/saveFriend", UpdateWebInfo)
-		webInfo.GET("/deleteResourcePath", UpdateWebInfo)
-		webInfo.POST("/updateResourcePath", UpdateWebInfo)
-		webInfo.POST("/listResourcePath", UpdateWebInfo)
-		webInfo.GET("/listFunny", UpdateWebInfo)
-		webInfo.GET("/listCollect", UpdateWebInfo)
-		webInfo.POST("/saveFunny", UpdateWebInfo)
-		webInfo.GET("/listAdminLovePhoto", UpdateWebInfo)
-		webInfo.POST("/saveLovePhoto", UpdateWebInfo)
-		webInfo.POST("/saveTreeHole", UpdateWebInfo)
-		webInfo.GET("/deleteTreeHole", UpdateWebInfo)
-		webInfo.GET("/listTreeHole", UpdateWebInfo)
-		webInfo.POST("/saveSort", UpdateWebInfo)
-		webInfo.GET("/deleteSort", UpdateWebInfo)
-		webInfo.POST("/updateSort", UpdateWebInfo)
-		webInfo.GET("/listSort", UpdateWebInfo)
-		webInfo.POST("/saveLabel", UpdateWebInfo)
-		webInfo.GET("/deleteLabel", UpdateWebInfo)
-		webInfo.POST("/updateLabel", UpdateWebInfo)
-		webInfo.GET("/listLabel", UpdateWebInfo)
-		webInfo.GET("/listSortAndLabel", UpdateWebInfo)
+		webInfo.GET("/getWebInfo", GetWebInfo)
+		webInfo.GET("/getAdmire", GetAdmire)
+		webInfo.GET("/getSortInfo", GetSortInfo)
+		webInfo.GET("/getWaifuJson", GetWifeJson)
+		webInfo.POST("/saveResourcePath", SaveResourcePath)
+		webInfo.POST("/saveFriend", SaveFriend)
+		webInfo.GET("/deleteResourcePath", DeleteResourcePath)
+		webInfo.POST("/updateResourcePath", UpdateResourcePath)
+		webInfo.POST("/listResourcePath", ListResourcePath)
+		webInfo.GET("/listFunny", ListFunny)
+		webInfo.GET("/listCollect", ListCollect)
+		webInfo.POST("/saveFunny", SaveFunny)
+		webInfo.GET("/listAdminLovePhoto", ListAdminLovePhoto)
+		webInfo.POST("/saveLovePhoto", SaveLovePhoto)
+		webInfo.POST("/saveTreeHole", SaveTreeHole)
+		webInfo.GET("/deleteTreeHole", DeleteTreeHole)
+		webInfo.GET("/listTreeHole", ListTreeHole)
+		webInfo.POST("/saveSort", SaveSort)
+		webInfo.GET("/deleteSort", DeleteSort)
+		webInfo.POST("/updateSort", UpdateSort)
+		webInfo.GET("/listSort", ListSort)
+		webInfo.POST("/saveLabel", SaveLabel)
+		webInfo.GET("/deleteLabel", DeleteLabel)
+		webInfo.POST("/updateLabel", UpdateLabel)
+		webInfo.GET("/listLabel", ListLabel)
+		webInfo.GET("/listSortAndLabel", ListSortAndLabel)
+	}
+	admin := engine.Group("/admin")
+	{
+		admin.POST("/user/list", ListUser)
+		admin.GET("/user/changeUserStatus", ChangeUserStatus)
+		admin.GET("/user/changeUserAdmire", ChangeUserAdmire)
+		admin.GET("/user/changeUserType", ChangeUserType)
+		admin.GET("/webInfo/getAdminWebInfo", GetAdminWebInfo)
+		admin.POST("/article/user/list", ListUserArticle)
+		admin.POST("/article/boss/list", ListBossArticle)
+		admin.GET("/article/changeArticleStatus", ChangeArticleStatus)
+		admin.GET("/article/getArticleById", GetArticleByIdForUser)
+		admin.GET("/comment/user/deleteComment", UserDeleteComment)
+		admin.GET("/comment/boss/deleteComment", BossDeleteComment)
+		admin.POST("/comment/user/list", ListUserComment)
+		admin.POST("/comment/boss/list", ListBossComment)
+		admin.POST("/treeHole/boss/list", ListBossTreeHole)
+	}
+	article := engine.Group("/article")
+	{
+		article.POST("/saveArticle", SaveArticle)
+		article.GET("/deleteArticle", DeleteArticle)
+		article.POST("/updateArticle", UpdateArticle)
+		article.POST("/listArticle", ListArticle)
+		article.GET("/getArticleById", GetArticleById)
+	}
+	comment := engine.Group("/comment")
+	{
+		comment.POST("/saveComment", SaveComment)
+		comment.GET("/deleteComment", DeleteComment)
+		comment.GET("/getCommentCount", GetCommentCount)
+		comment.POST("/listComment", ListComment)
+	}
+	family := engine.Group("/family")
+	{
+		family.POST("/saveFamily", SaveFamily)
+		family.GET("/deleteFamily", DeleteFamily)
+		family.GET("/getFamily", GetFamily)
+		family.GET("/getAdminFamily", GetAdminFamily)
+		family.POST("/listRandomFamily", ListRandomFamily)
+		family.POST("/listFamily", ListFamily)
+		family.GET("/changeLoveStatus", ChangeLoveStatus)
+	}
+	qiniu := engine.Group("/qiniu")
+	{
+		qiniu.GET("/getUpToken", GetUpToken)
+	}
+	resource := engine.Group("/resource")
+	{
+		resource.POST("/saveResource", SaveResource)
+		resource.POST("/deleteResource", DeleteResource)
+		resource.GET("/getResourceInfo", GetResourceInfo)
+		resource.GET("/getImageList", GetImageList)
+		resource.POST("/listResource", ListResource)
+		resource.GET("/changeResourceStatus", ChangeResourceStatus)
+	}
+	user := engine.Group("/user")
+	{
+		user.POST("/regist", Register)
+		user.POST("/login", Login)
+		user.POST("/token", LoginByToken)
+		user.GET("/logout", Logout)
+		user.POST("/updateUserInfo", UpdateUserInfo)
+		user.GET("/getCode", GetCaptcha)
+		user.GET("/getCodeForBind", GetCaptchaForBind)
+		user.POST("/updateSecretInfo", UpdateSecretInfo)
+		user.GET("/getCodeForForgetPassword", GetCaptchaForForgetPassword)
+		user.POST("/updateForForgetPassword", UpdateForForgetPassword)
+		user.GET("/getUserByUsername", GetUserByUsername)
+	}
+	weiYan := engine.Group("/weiYan")
+	{
+		weiYan.POST("/saveWeiYan", SaveWeiYan)
+		weiYan.POST("/saveNews", SaveNews)
+		weiYan.POST("/listNews", ListNews)
+		weiYan.GET("/deleteWeiYan", DeleteWeiYan)
+		weiYan.POST("/listWeiYan", ListWeiYan)
 	}
 }
 
-func Run(prometheusPort int) {
+func Run(port int) {
 	//go ws.run()
 
-	go func() {
-		err := prometheus.StartPromeSrv(prometheusPort)
-		if err != nil {
-			panic(err)
-		}
-	}()
+	//go func() {
+	//	err := prometheus.StartPromeSrv(prometheusPort)
+	//	if err != nil {
+	//		panic(err)
+	//	}
+	//}()
 }

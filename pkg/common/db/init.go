@@ -6,8 +6,7 @@ import (
 	go_redis "github.com/go-redis/redis/v8"
 	"gopkg.in/mgo.v2"
 	"gorm.io/gorm"
-	"wan_go/pkg/common/db/mysql/blog"
-	"wan_go/sdk/api"
+	r "wan_go/pkg/common/response"
 
 	//"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -30,11 +29,11 @@ func init() {
 
 	fmt.Println("initiating mysql redis mongo ")
 
-	blog.InitMysql(&DB)
+	InitMysql(&DB)
 
-	initMongo()
+	//initMongo()
 
-	initRedis()
+	//initRedis()
 
 	fmt.Println("mysql redis mongo initiated")
 }
@@ -44,7 +43,7 @@ func Mysql() *gorm.DB {
 }
 
 // Page todo 怎么改成传BaseRequestVO[T]？
-func Page(pagination *api.Pagination) (db *gorm.DB) {
+func Page(pagination *r.Pagination) (db *gorm.DB) {
 
 	db = Mysql().
 		Order(pagination.Order()).

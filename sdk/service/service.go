@@ -1,7 +1,7 @@
 package service
 
 import (
-	"wan_go/sdk/api"
+	"wan_go/pkg/common/api"
 )
 
 type IService interface {

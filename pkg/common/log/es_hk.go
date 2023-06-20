@@ -23,11 +23,11 @@ func newEsHook(moduleName string) *esHook {
 	//https://github.com/sohlich/elogrus
 	//client, err := elastic.NewClient(elastic.SetURL("http://localhost:9200"))
 	//if err != nil {
-	//	log.Panic(err)
+	//	logs.Panic(err)
 	//}
 	//hook, err := elogrus.NewAsyncElasticHook(client, "localhost", logrus.DebugLevel, "mylog")
 	//if err != nil {
-	//	log.Panic(err)
+	//	logs.Panic(err)
 	//}
 	es, err := elasticV7.NewClient(
 		elasticV7.SetURL(config.Config.Log.ElasticSearchAddr...),
@@ -55,7 +55,7 @@ func newEsHook(moduleName string) *esHook {
 	return &esHook{client: es, moduleName: moduleName}
 }
 
-// Fire log hook interface
+// Fire logs hook interface
 func (hook *esHook) Fire(entry *logrus.Entry) error {
 	doc := newEsLog(entry)
 	go hook.sendEs(doc)

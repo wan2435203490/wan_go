@@ -157,7 +157,7 @@ func GetArticleById(id int, flag bool, password string) *blogVO.ArticleVO {
 		tx.Where("view_status=?", true)
 	} else {
 		if utils.IsEmpty(password) {
-			vo.ErrMsg = "请输入文章密码！"
+			vo.Msg = "请输入文章密码！"
 			return &vo
 		}
 		tx.Where("password=?", password)
@@ -167,7 +167,7 @@ func GetArticleById(id int, flag bool, password string) *blogVO.ArticleVO {
 	}
 
 	if err := db.Mysql().Model(&article).Updates("view_count=view_count+1").Error; err != nil {
-		vo.ErrMsg = err.Error()
+		vo.Msg = err.Error()
 		return &vo
 	}
 
@@ -200,7 +200,7 @@ func ListAdminArticle(vo *blogVO.BaseRequestVO[*blogVO.ArticleVO], isBoss bool) 
 	}
 	var articles []*blog.Article
 	if err := tx.Find(&articles).Order("createdAt desc").Error; err != nil {
-		vo.ErrMsg = err.Error()
+		vo.Msg = err.Error()
 		return
 	}
 
@@ -233,7 +233,7 @@ func GetArticleByIdForUser(id int) *blogVO.ArticleVO {
 	var vo blogVO.ArticleVO
 	article := blog.Article{ID: int32(id)}
 	if err := db.Mysql().Where("user_id=?", cache.GetUserId()).Find(&article).Error; err != nil {
-		vo.ErrMsg = err.Error()
+		vo.Msg = err.Error()
 		return &vo
 	}
 

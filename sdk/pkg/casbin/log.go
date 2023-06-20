@@ -6,7 +6,7 @@ import (
 	"wan_go/core/logger"
 )
 
-// Logger is the implementation for a Logger using golang log.
+// Logger is the implementation for a Logger using golang logs.
 type Logger struct {
 	enable int32
 }
@@ -25,7 +25,7 @@ func (l *Logger) IsEnabled() bool {
 	return atomic.LoadInt32(&(l.enable)) != 0
 }
 
-// LogModel log info related to model.
+// LogModel logs info related to model.
 func (l *Logger) LogModel(model [][]string) {
 	var str string
 	for i := range model {
@@ -37,7 +37,7 @@ func (l *Logger) LogModel(model [][]string) {
 	logger.DefaultLogger.Log(logger.InfoLevel, str)
 }
 
-// LogEnforce log info related to enforce.
+// LogEnforce logs info related to enforce.
 func (l *Logger) LogEnforce(matcher string, request []interface{}, result bool, explains [][]string) {
 	logger.DefaultLogger.Fields(map[string]interface{}{
 		"matcher":  matcher,
@@ -47,14 +47,14 @@ func (l *Logger) LogEnforce(matcher string, request []interface{}, result bool, 
 	}).Log(logger.InfoLevel, nil)
 }
 
-// LogRole log info related to role.
+// LogRole logs info related to role.
 func (l *Logger) LogRole(roles []string) {
 	logger.DefaultLogger.Fields(map[string]interface{}{
 		"roles": roles,
 	})
 }
 
-// LogPolicy log info related to policy.
+// LogPolicy logs info related to policy.
 func (l *Logger) LogPolicy(policy map[string][][]string) {
 	data := make(map[string]interface{}, len(policy))
 	for k := range policy {

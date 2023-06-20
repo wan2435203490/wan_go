@@ -1,14 +1,12 @@
 package db
 
 import (
+	"fmt"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/x/bsonx"
 	"strings"
 	"wan_go/pkg/common/config"
-
-	"fmt"
-	"go.mongodb.org/mongo-driver/mongo/options"
-	//"wan_go/pkg/db_common/log"
-	"wan_go/pkg/utils"
+	//"wan_go/pkg/db_common/logs"
 
 	"time"
 
@@ -118,13 +116,13 @@ func createMongoIndex(client *mongo.Client, collection string, isUnique bool, ke
 	if isUnique == true {
 		index.Options = options.Index().SetUnique(true)
 	}
-	result, err := indexView.CreateOne(
+	_, err := indexView.CreateOne(
 		context.Background(),
 		index,
 		opts,
 	)
-	if err != nil {
-		return utils.Wrap(err, result)
-	}
-	return nil
+	//if err != nil {
+	//	return utils.Wrap(err, result)
+	//}
+	return err
 }

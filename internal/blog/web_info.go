@@ -13,21 +13,21 @@ import (
 	"wan_go/pkg/utils"
 	blogVO "wan_go/pkg/vo/blog"
 
+	"wan_go/pkg/common/api"
 	"wan_go/pkg/common/cache"
 	"wan_go/pkg/common/db/mysql/blog"
 	"wan_go/pkg/common/db/mysql/blog/db_web_info"
-	"wan_go/sdk/api"
 )
 
 var (
-	a webInfoApi
+	a blogApi
 )
 
-type webInfoApi struct {
+type blogApi struct {
 	api.Api
 }
 
-func WebInfo(c *gin.Context) {
+func Api(c *gin.Context) {
 	if a.MakeContext(c) != nil {
 		c.Abort()
 		return

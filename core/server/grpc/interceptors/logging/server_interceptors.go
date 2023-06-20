@@ -12,17 +12,17 @@ import (
 	"path"
 	"time"
 
-	"wan_go/core/server/grpc/interceptors/logging/ctxlog"
-	"wan_go/core/tools/utils"
 	middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"google.golang.org/grpc"
+	"wan_go/core/server/grpc/interceptors/logging/ctxlog"
+	"wan_go/core/tools/utils"
 )
 
 var (
-	// SystemField is used in every log statement made through grpc_zap. Can be overwritten before any initialization code.
+	// SystemField is used in every logs statement made through grpc_zap. Can be overwritten before any initialization code.
 	SystemField = ctxlog.NewFields("system", "grpc")
 
-	// ServerField is used in every server-side log statement made through grpc_zap.Can be overwritten before initialization.
+	// ServerField is used in every server-side logs statement made through grpc_zap.Can be overwritten before initialization.
 	ServerField = ctxlog.NewFields("span.kind", "server")
 )
 

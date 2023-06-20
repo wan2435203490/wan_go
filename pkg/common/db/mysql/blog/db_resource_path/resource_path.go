@@ -51,7 +51,7 @@ func ListByResourceTypeAndClassify(requestVO *blogVO.BaseRequestVO[*blogVO.Resou
 	//	Offset(pagination.Current).
 	//	Find(&resourcePaths).Error; err != nil {
 	//
-	//	log.NewWarn("ListByResourceTypeAndClassify", err.Error())
+	//	logs.NewWarn("ListByResourceTypeAndClassify", err.Error())
 	//	return nil
 	//}
 

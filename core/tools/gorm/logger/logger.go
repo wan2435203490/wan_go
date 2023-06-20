@@ -43,7 +43,7 @@ func (l *gormLogger) getLogger(ctx context.Context) loggerCore.Logger {
 	return loggerCore.DefaultLogger
 }
 
-// LogMode log mode
+// LogMode logs mode
 func (l *gormLogger) LogMode(level logger.LogLevel) logger.Interface {
 	newLogger := *l
 	newLogger.LogLevel = level

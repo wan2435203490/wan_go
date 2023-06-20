@@ -4,7 +4,7 @@ import (
 	"github.com/alibaba/sentinel-golang/core/system"
 	sentinel "github.com/alibaba/sentinel-golang/pkg/adapters/gin"
 	"github.com/gin-gonic/gin"
-	log "landlord/core/logger"
+	log "wan_go/core/logger"
 )
 
 func Sentinel() gin.HandlerFunc {

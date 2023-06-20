@@ -134,7 +134,7 @@ func (manager *Manager) Start() {
 					delete(mGroup, client.Id)
 					manager.clientCount -= 1
 					if len(mGroup) == 0 {
-						//log.Printf("delete empty group [%s]", client.Group)
+						//logs.Printf("delete empty group [%s]", client.Group)
 						delete(manager.Group, client.Group)
 						manager.groupCount -= 1
 					}
@@ -306,7 +306,7 @@ func (manager *Manager) WsClient(c *gin.Context) {
 	go client.Write(ctx)
 	time.Sleep(time.Second * 15)
 
-	pkg.FileMonitoringById(ctx, "temp/logs/job/db-20200820.log", c.Param("id"), c.Param("channel"), SendOne)
+	pkg.FileMonitoringById(ctx, "temp/logs/job/db-20200820.logs", c.Param("id"), c.Param("channel"), SendOne)
 }
 
 func (manager *Manager) UnWsClient(c *gin.Context) {

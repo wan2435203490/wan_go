@@ -10,9 +10,9 @@ import (
 	"wan_go/pkg/common/db/mysql/blog/db_tree_hole"
 	"wan_go/pkg/common/db/mysql/blog/db_user"
 	"wan_go/pkg/common/db/mysql/blog/db_web_info"
+	r "wan_go/pkg/common/response"
 	"wan_go/pkg/utils"
 	blogVO "wan_go/pkg/vo/blog"
-	"wan_go/sdk/api"
 )
 
 func ListUser(c *gin.Context) {
@@ -89,7 +89,7 @@ func ChangeUserType(c *gin.Context) {
 	}
 
 	if userType < 0 || userType > 2 {
-		a.CodeError(api.PARAMETER_ERROR)
+		a.CodeError(r.PARAMETER_ERROR)
 		return
 	}
 

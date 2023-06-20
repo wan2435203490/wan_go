@@ -54,10 +54,10 @@ func (a *Api) MakeContext(c *gin.Context) error {
 	a.Context = c
 	//a.Logger = GetRequestLogger(c)
 
-	err := a.MakeOrm()
-	if err != nil {
-		return err
-	}
+	//err := a.MakeOrm()
+	//if err != nil {
+	//	return err
+	//}
 
 	return nil
 }

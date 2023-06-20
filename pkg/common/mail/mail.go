@@ -1,18 +1,14 @@
-package utils
+package mail
 
 import (
-	"encoding/json"
+	json2 "encoding/json"
 	"fmt"
 	"github.com/jordan-wright/email"
 	"gorm.io/gorm/utils"
 	"net/smtp"
 	"sync/atomic"
-	"wan_go/pkg/common/cache"
 	"wan_go/pkg/common/config"
 	"wan_go/pkg/common/constant/blog_const"
-	"wan_go/pkg/common/db"
-	"wan_go/pkg/common/db/mysql/blog"
-	"wan_go/pkg/common/db/mysql/blog/db_common"
 	"wan_go/pkg/common/log"
 	blogVO "wan_go/pkg/vo/blog"
 )
@@ -47,7 +43,7 @@ var (
 		"    <div style=\"margin-top: 20px;display: flex;flex-direction: column;align-items: center\">\n" +
 		"        <div style=\"margin: 10px auto 20px;text-align: center\">\n" +
 		"            <div style=\"line-height: 32px;font-size: 26px;font-weight: bold;color: #000000\">\n" +
-		"                嘿！你在 %s 中收到一条新消息。\n" +
+		"                嘿！你收到一条来自 %s 的一条新消息。\n" +
 		"            </div>\n" +
 		"            <div style=\"font-size: 16px;font-weight: bold;color: rgba(0, 0, 0, 0.19);margin-top: 21px\">\n" +
 		"                %s\n" +
@@ -66,7 +62,7 @@ var (
 		"            </div>\n" +
 		"            %s\n" +
 		"            <a style=\"width: 150px;height: 38px;background: #ef859d38;border-radius: 32px;display: flex;align-items: center;justify-content: center;text-decoration: none;margin: 40px auto 0\"\n" +
-		"               href=\"https://poetize.cn\" target=\"_blank\">\n" +
+		"               href=\"https://2fun.top\" target=\"_blank\">\n" +
 		"                <span style=\"color: #DB214B\">有朋自远方来</span>\n" +
 		"            </a>\n" +
 		"        </div>\n" +
@@ -87,7 +83,7 @@ var (
 )
 
 func SendMail(to []string, subject, text string) {
-	toBytes, err := json.Marshal(to)
+	toBytes, err := json2.Marshal(to)
 	log.Info("SendMail", "发送邮件===================")
 	log.Info("SendMail", toBytes)
 	log.Info("SendMail", subject, text)
@@ -113,70 +109,48 @@ func SendMail(to []string, subject, text string) {
 
 	auth := smtp.PlainAuth("", config.Config.Mail.Username, config.Config.Mail.Password, config.Config.Mail.Host)
 	err = e.Send(config.Config.Mail.Host+":"+config.Config.Mail.Port, auth)
-	if err != nil {
+	if err == nil {
 		log.Info("SendMail", "发送成功==================")
 	} else {
-		log.Info("SendMail", "发送失败==================")
+		log.Info("SendMail", "发送失败==================%s", err.Error())
 	}
 }
 
-func SendCommentMail(vo *blogVO.CommentVO, article *blog.Article) {
-	mails := make([]string, 0)
-	toName := ""
+func SendSimpleCommentMail(vo *blogVO.CommentVO, mails []string, fromName, toName, webName string,
+	sendCount *atomic.Int32, sendSuccess func()) {
+	SendCommentMail(vo, mails, "", fromName, toName, webName, "", sendCount, sendSuccess)
+}
 
-	if vo.ParentUserId > 0 {
-		user := db_common.GetUser(vo.ParentUserId)
-		if validateUser(user) {
-			toName = user.UserName
-			mails = append(mails, user.Email)
-		}
-	} else {
-		if vo.Type == blog_const.COMMENT_TYPE_MESSAGE.Code || vo.Type == blog_const.COMMENT_TYPE_LOVE.Code {
-			admin := cache.GetAdminUser()
-			if validateUser(admin) {
-				mails = append(mails, admin.Email)
-			}
-		} else if vo.Type == blog_const.COMMENT_TYPE_ARTICLE.Code {
-			user := db_common.GetUser(article.UserId)
-			if validateUser(user) {
-				mails = append(mails, user.Email)
-			}
+func SendCommentMail(vo *blogVO.CommentVO, mails []string, articleTitle, fromName, toName, webName, mailContent string,
+	sendCount *atomic.Int32, sendSuccess func()) {
+
+	sourceName := ""
+	if vo.Type == blog_const.COMMENT_TYPE_ARTICLE.Code {
+		sourceName = articleTitle
+	}
+
+	commentMail := getCommentMail(
+		vo.Type,
+		sourceName,
+		fromName,
+		vo.CommentContent,
+		toName,
+		webName,
+		mailContent,
+	)
+
+	if sendCount.Load() < blog_const.COMMENT_IM_MAIL_COUNT {
+
+		SendMail(mails, "您有一封来自"+webName+"的回执！", commentMail)
+
+		if sendCount == nil {
+			sendSuccess()
+		} else {
+			//直接set 1
+			sendCount.Swap(1)
 		}
 	}
 
-	if len(mails) > 0 {
-		sourceName := ""
-		if vo.Type == blog_const.COMMENT_TYPE_ARTICLE.Code {
-			sourceName = article.ArticleTitle
-		}
-
-		commentMail := getCommentMail(
-			vo.Type,
-			sourceName,
-			cache.GetUserName(),
-			vo.CommentContent,
-			toName,
-			vo.ParentCommentId,
-		)
-
-		key := blog_const.COMMENT_IM_MAIL + mails[0]
-		get, ok := cache.Get(key)
-		if ok {
-			if count := get.(*atomic.Int32); count.Load() < blog_const.COMMENT_IM_MAIL_COUNT {
-				webName := cache.GetWebName()
-				SendMail(mails, "您有一封来自"+webName+"的回执！", commentMail)
-
-				if count == nil {
-					var i atomic.Int32
-					i.Store(1)
-					cache.SetExpire(key, &i, blog_const.TOKEN_EXPIRE*4)
-				} else {
-					//直接set 1
-					count.Swap(1)
-				}
-			}
-		}
-	}
 }
 
 /**
@@ -184,18 +158,11 @@ func SendCommentMail(vo *blogVO.CommentVO, article *blog.Article) {
  * fromName：评论人
  * toName：被评论人
  */
-func getCommentMail(commentType, source, fromName, fromContent, toName string, toCommentId int32) string {
-	webName := cache.GetWebName()
-
-	var mailType, toMail string
+func getCommentMail(commentType, source, fromName, fromContent, toName, webName, mailContent string) string {
+	var mailType string
 
 	if len(toName) > 0 {
 		mailType = fmt.Sprintf(ReplyMail, fromName)
-		comment := blog.Comment{ID: toCommentId}
-		//todo db may not be here?
-		if err := db.Mysql().Select("comment_content").Find(&comment); err != nil {
-			toMail = comment.CommentContent
-		}
 	} else {
 		switch commentType {
 		case blog_const.COMMENT_TYPE_MESSAGE.Code:
@@ -214,10 +181,6 @@ func getCommentMail(commentType, source, fromName, fromContent, toName string, t
 		mailType,
 		fromName,
 		fromContent,
-		toMail,
+		mailContent,
 		webName)
-}
-
-func validateUser(user *blog.User) bool {
-	return user != nil && int(user.ID) != cache.GetUserId() && len(user.Email) > 0
 }

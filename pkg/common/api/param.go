@@ -9,6 +9,15 @@ import (
 	"wan_go/pkg/utils"
 )
 
+func (a *Api) Query(key string) string {
+	value := a.Context.Query(key)
+	return value
+}
+func (a *Api) QueryInt(key string) int {
+	value := a.Context.Query(key)
+	return utils.StringToInt(value)
+}
+
 func (a *Api) Param(key string) (value string) {
 
 	value = a.Context.Param(key)

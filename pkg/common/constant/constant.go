@@ -143,9 +143,9 @@ const (
 	DefalutNotKick = 0
 	//Full-end login, but the same end is mutually exclusive
 	AllLoginButSameTermKick = 1
-	//Only one of the endpoints can log in
+	//Only one of the endpoints can logs in
 	SingleTerminalLogin = 2
-	//The web side can be online at the same time, and the other side can only log in at one end
+	//The web side can be online at the same time, and the other side can only logs in at one end
 	WebAndOther = 3
 	//The PC side is mutually exclusive, and the mobile side is mutually exclusive, but the web side can be online at the same time
 	PcMobileAndWeb = 4
@@ -355,7 +355,7 @@ const (
 
 const BigVersion = "v2"
 
-const LogFileName = "wan_go.log"
+const LogFileName = "wan_go.logs"
 
 const StatisticsTimeInterval = 60
 

@@ -1,10 +1,10 @@
-package blog
+package db
 
 import (
 	"fmt"
 	"time"
 	"wan_go/pkg/common/config"
-	"wan_go/pkg/common/db"
+	"wan_go/pkg/common/db/mysql/blog"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -19,7 +19,7 @@ func (w Writer) Printf(format string, args ...interface{}) {
 
 const dsnFormat = "%s:%s@tcp(%s)/%s?charset=utf8mb4&parseTime=true&loc=Local"
 
-func InitMysql(DB *db.DataBases) {
+func InitMysql(DB *DataBases) {
 	dsn := fmt.Sprintf(dsnFormat,
 		config.Config.Mysql.UserName,
 		config.Config.Mysql.Password,
@@ -82,22 +82,22 @@ func InitMysql(DB *db.DataBases) {
 	sqlDB.SetMaxIdleConns(config.Config.Mysql.MaxIdleConns)
 
 	db.AutoMigrate(
-		&User{},
-		&Article{},
-		&Comment{},
-		&Sort{},
-		&Label{},
-		&TreeHole{},
-		&WeiYan{},
-		&WebInfo{},
-		&ResourcePath{},
-		&Resource{},
-		&Family{},
-		&ImChatUserFriend{},
-		&ImChatGroup{},
-		&ImChatGroupUser{},
-		&ImChatUserMessage{},
-		&ImChatUserGroupMessage{},
+		&blog.User{},
+		&blog.Article{},
+		&blog.Comment{},
+		&blog.Sort{},
+		&blog.Label{},
+		&blog.TreeHole{},
+		&blog.WeiYan{},
+		&blog.WebInfo{},
+		&blog.ResourcePath{},
+		&blog.Resource{},
+		&blog.Family{},
+		&blog.ImChatUserFriend{},
+		&blog.ImChatGroup{},
+		&blog.ImChatGroupUser{},
+		&blog.ImChatUserMessage{},
+		&blog.ImChatUserGroupMessage{},
 	)
 
 	db.Set("gorm:table_options", "CHARSET=utf8")

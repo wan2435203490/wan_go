@@ -11,27 +11,27 @@ import (
 	"wan_go/pkg/common/db/mysql/blog/db_im_chat_group_friend"
 	"wan_go/pkg/common/db/mysql/blog/db_im_chat_group_user"
 	"wan_go/pkg/common/db/mysql/blog/db_wei_yan"
+	r "wan_go/pkg/common/response"
 	"wan_go/pkg/utils"
 	blogVO "wan_go/pkg/vo/blog"
-	"wan_go/sdk/api"
 )
 
 const REGEX = "\\d{11}"
 
 func Register(userIn *blogVO.UserVO) *blogVO.UserVO {
 	var userOut blogVO.UserVO
-	if matched, err := regexp.MatchString(userIn.UserName, REGEX); !matched || err != nil {
-		userOut.ErrMsg = "用户名不能为11位数字！"
+	if matched, err := regexp.MatchString(userIn.UserName, REGEX); matched || err != nil {
+		userOut.Msg = "用户名不能为11位数字！"
 		return &userOut
 	}
 
 	if strings.Contains(userIn.UserName, "@") {
-		userOut.ErrMsg = "用户名不能包含@！"
+		userOut.Msg = "用户名不能包含@！"
 		return &userOut
 	}
 
 	if utils.IsNotEmpty(userIn.PhoneNumber) && utils.IsNotEmpty(userIn.Email) {
-		userOut.ErrMsg = "手机号与邮箱只能选择其中一个！"
+		userOut.Msg = "手机号与邮箱只能选择其中一个！"
 		return &userOut
 	}
 
@@ -39,7 +39,7 @@ func Register(userIn *blogVO.UserVO) *blogVO.UserVO {
 		key := blog_const.FORGET_PASSWORD + userIn.PhoneNumber + "_1"
 		get, b := cache.GetString(key)
 		if !b || get != userIn.Code {
-			userOut.ErrMsg = "验证码错误！"
+			userOut.Msg = "验证码错误！"
 			return &userOut
 		}
 		cache.Delete(key)
@@ -47,12 +47,12 @@ func Register(userIn *blogVO.UserVO) *blogVO.UserVO {
 		key := blog_const.FORGET_PASSWORD + userIn.Email + "_2"
 		get, b := cache.GetString(key)
 		if !b || get != userIn.Code {
-			userOut.ErrMsg = "验证码错误！"
+			userOut.Msg = "验证码错误！"
 			return &userOut
 		}
 		cache.Delete(key)
 	} else {
-		userOut.ErrMsg = "请输入邮箱或手机号！"
+		userOut.Msg = "请输入邮箱或手机号！"
 		return &userOut
 	}
 
@@ -61,11 +61,11 @@ func Register(userIn *blogVO.UserVO) *blogVO.UserVO {
 
 	var count int64
 	if err := db.Mysql().Model(&blog.User{}).Where("user_name=?", userIn.UserName).Count(&count).Error; err != nil {
-		userOut.ErrMsg = err.Error()
+		userOut.Msg = err.Error()
 		return &userOut
 	}
 	if count > 0 {
-		userOut.ErrMsg = "用户名重复！"
+		userOut.Msg = "用户名重复！"
 		return &userOut
 	}
 
@@ -73,14 +73,14 @@ func Register(userIn *blogVO.UserVO) *blogVO.UserVO {
 		//下面就不去判错了
 		db.Mysql().Model(&blog.User{}).Where("phone_number=?", userIn.PhoneNumber).Count(&count)
 		if count > 0 {
-			userOut.ErrMsg = "手机号重复！"
+			userOut.Msg = "手机号重复！"
 			return &userOut
 		}
 	} else if utils.IsNotEmpty(userIn.Email) {
 		//下面就不去判错了
 		db.Mysql().Model(&blog.User{}).Where("email=?", userIn.Email).Count(&count)
 		if count > 0 {
-			userOut.ErrMsg = "邮箱重复！"
+			userOut.Msg = "邮箱重复！"
 			return &userOut
 		}
 	}
@@ -97,12 +97,12 @@ func Register(userIn *blogVO.UserVO) *blogVO.UserVO {
 	}
 
 	if err := Insert(&user); err != nil {
-		userOut.ErrMsg = err.Error()
+		userOut.Msg = err.Error()
 		return &userOut
 	}
 
 	if err := db.Mysql().Find(&user).Error; err != nil {
-		userOut.ErrMsg = err.Error()
+		userOut.Msg = err.Error()
 		return &userOut
 	}
 
@@ -156,12 +156,12 @@ func Login(account string, password []byte, isAdmin bool) *blogVO.UserVO {
 	var user blog.User
 	if err = db.Mysql().Where("password = ? and (user_name = @account or email = @account or phone_number = @account)",
 		password, sql.Named("account", account)).First(&user).Error; err != nil {
-		userVO.ErrMsg = "账号/密码错误，请重新输入！"
+		userVO.Msg = "账号/密码错误，请重新输入！"
 		return &userVO
 	}
 
 	if !user.UserStatus {
-		userVO.ErrMsg = "账号被冻结！"
+		userVO.Msg = "账号被冻结！"
 		return &userVO
 	}
 
@@ -181,7 +181,7 @@ func adminLogin(user *blog.User, userVO *blogVO.UserVO) {
 	var adminToken string
 
 	if user.UserType != blog_const.USER_TYPE_ADMIN.Code && user.UserType != blog_const.USER_TYPE_DEV.Code {
-		userVO.ErrMsg = "请输入管理员账号！"
+		userVO.Msg = "请输入管理员账号！"
 	}
 
 	key := blog_const.ADMIN_TOKEN + utils.Int32ToString(user.ID)
@@ -222,11 +222,11 @@ func LoginByToken(token string) *blogVO.UserVO {
 	var userVO blogVO.UserVO
 	token, err := utils.AesDecryptByString(token, blog_const.CRYPOTJS_KEY)
 	if err != nil || utils.IsEmpty(token) {
-		userVO.ErrMsg = "未登录，请登陆后再进行操作！"
+		userVO.Msg = "未登录，请登陆后再进行操作！"
 		return &userVO
 	}
 	if get, b := cache.Get(token); !b {
-		userVO.ErrMsg = "登录已过期，请重新登录！"
+		userVO.Msg = "登录已过期，请重新登录！"
 		return &userVO
 	} else {
 		userVO.Copy(get.(*blog.User))
@@ -250,12 +250,12 @@ func Exit(token string, userId int32) {
 func UpdateUserInfo(userIn *blogVO.UserVO, userToken string) *blogVO.UserVO {
 	var userOut blogVO.UserVO
 	if matched, err := regexp.MatchString(userIn.UserName, REGEX); !matched || err != nil {
-		userOut.ErrMsg = "用户名不能为11位数字！"
+		userOut.Msg = "用户名不能为11位数字！"
 		return &userOut
 	}
 
 	if strings.Contains(userIn.UserName, "@") {
-		userOut.ErrMsg = "用户名不能包含@！"
+		userOut.Msg = "用户名不能包含@！"
 		return &userOut
 	}
 
@@ -263,11 +263,11 @@ func UpdateUserInfo(userIn *blogVO.UserVO, userToken string) *blogVO.UserVO {
 	if err := db.Mysql().Model(&blog.User{}).
 		Where("user_name=? and id <> ?", userIn.UserName, userIn.ID).
 		Count(&count).Error; err != nil {
-		userOut.ErrMsg = err.Error()
+		userOut.Msg = err.Error()
 		return &userOut
 	}
 	if count > 0 {
-		userOut.ErrMsg = "用户名重复！"
+		userOut.Msg = "用户名重复！"
 		return &userOut
 	}
 
@@ -278,12 +278,12 @@ func UpdateUserInfo(userIn *blogVO.UserVO, userToken string) *blogVO.UserVO {
 	user.Gender = userIn.Gender
 	user.Introduction = userIn.Introduction
 	if err := Update(&user); err != nil {
-		userOut.ErrMsg = err.Error()
+		userOut.Msg = err.Error()
 		return &userOut
 	}
 
 	if err := db.Mysql().Find(&user).Error; err != nil {
-		userOut.ErrMsg = err.Error()
+		userOut.Msg = err.Error()
 		return &userOut
 	}
 
@@ -303,12 +303,12 @@ func UpdateSecretInfo(place, flag, captcha, password string, user *blog.User) *b
 	userVO := blogVO.UserVO{}
 	if flag == "1" || flag == "2" {
 		if utils.Md5(password) != user.Password {
-			userVO.ErrMsg = "密码错误！"
+			userVO.Msg = "密码错误！"
 			return &userVO
 		}
 
 		if utils.IsEmpty(captcha) {
-			userVO.ErrMsg = "请输入验证码！"
+			userVO.Msg = "请输入验证码！"
 			return &userVO
 		}
 	}
@@ -324,11 +324,11 @@ func UpdateSecretInfo(place, flag, captcha, password string, user *blog.User) *b
 	case "1":
 		if err := db.Mysql().Model(&blog.User{}).Where("phone_number=?", place).Count(&count).Error; err != nil {
 			//todo 包装errmsg
-			userVO.ErrMsg = err.Error()
+			userVO.Msg = err.Error()
 			return &userVO
 		}
 		if count > 0 {
-			userVO.ErrMsg = "手机号重复！"
+			userVO.Msg = "手机号重复！"
 			return &userVO
 		}
 
@@ -339,11 +339,11 @@ func UpdateSecretInfo(place, flag, captcha, password string, user *blog.User) *b
 
 	case "2":
 		if err := db.Mysql().Model(&blog.User{}).Where("email=?", place).Count(&count).Error; err != nil {
-			userVO.ErrMsg = err.Error()
+			userVO.Msg = err.Error()
 			return &userVO
 		}
 		if count > 0 {
-			userVO.ErrMsg = "邮箱重复！"
+			userVO.Msg = "邮箱重复！"
 			return &userVO
 		}
 		fun := func() { updateUser.Email = place }
@@ -354,7 +354,7 @@ func UpdateSecretInfo(place, flag, captcha, password string, user *blog.User) *b
 		if utils.Md5(place) == user.Password {
 			updateUser.Password = utils.Md5(password)
 		} else {
-			userVO.ErrMsg = "密码错误！"
+			userVO.Msg = "密码错误！"
 			return &userVO
 		}
 	default:
@@ -362,11 +362,11 @@ func UpdateSecretInfo(place, flag, captcha, password string, user *blog.User) *b
 	}
 
 	if err := Update(&updateUser); err != nil {
-		userVO.ErrMsg = err.Error()
+		userVO.Msg = err.Error()
 		return &userVO
 	}
 	if err := db.Mysql().Find(&updateUser).Error; err != nil {
-		userVO.ErrMsg = err.Error()
+		userVO.Msg = err.Error()
 		return &userVO
 	}
 
@@ -386,16 +386,16 @@ func validateCaptcha(key, captcha string, userVO *blogVO.UserVO, fun func()) boo
 		fun()
 		return true
 	} else {
-		userVO.ErrMsg = "验证码错误！"
+		userVO.Msg = "验证码错误！"
 		return false
 	}
 }
 
-func WrapError(msg string) *api.CodeMsg {
-	return &api.CodeMsg{ErrMsg: msg}
+func WrapError(msg string) *r.CodeMsg {
+	return &r.CodeMsg{Msg: msg}
 }
 
-func UpdateForForgetPassword(place, flag, captcha, password string) *api.CodeMsg {
+func UpdateForForgetPassword(place, flag, captcha, password string) *r.CodeMsg {
 
 	password, _ = utils.AesDecryptByString(password, blog_const.CRYPOTJS_KEY)
 

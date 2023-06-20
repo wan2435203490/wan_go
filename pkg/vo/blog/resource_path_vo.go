@@ -3,12 +3,12 @@ package blog
 import (
 	"time"
 	"wan_go/pkg/common/db/mysql/blog"
-	"wan_go/sdk/api"
+	r "wan_go/pkg/common/response"
 )
 
 // todo time format
 type ResourcePathVO struct {
-	pagination   *api.Pagination
+	pagination   *r.Pagination
 	ID           int32     `json:"id"`
 	Title        string    `json:"title" vd:"@:len($)>0; msg:'资源标题不能为空'"`
 	Classify     string    `json:"classify"`

@@ -13,9 +13,9 @@ type Logger interface {
 	Options() Options
 	// Fields set fields to always be logged
 	Fields(fields map[string]interface{}) Logger
-	// Log writes a log entry
+	// Log writes a logs entry
 	Log(level Level, v ...interface{})
-	// Logf writes a formatted log entry
+	// Logf writes a formatted logs entry
 	Logf(level Level, format string, v ...interface{})
 	// String returns the name of logger
 	String() string

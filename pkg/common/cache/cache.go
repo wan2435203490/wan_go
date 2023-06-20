@@ -8,7 +8,6 @@ import (
 	"wan_go/pkg/common/constant/blog_const"
 	"wan_go/pkg/common/db/mysql/blog"
 	"wan_go/pkg/utils"
-	//blogVO "wan_go/pkg/vo/blog"
 )
 
 var (
@@ -97,4 +96,8 @@ func GetWebName() string {
 		return config.Config.Blog.Name
 	}
 	return webInfo.WebName
+}
+
+func CanSendEmail(user *blog.User) bool {
+	return user != nil && int(user.ID) != GetUserId() && len(user.Email) > 0
 }

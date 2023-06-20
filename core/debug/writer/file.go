@@ -107,7 +107,7 @@ func (p *FileWriter) Write(data []byte) (n int, err error) {
 }
 
 // getFilename 获取log文件名
-// 目前为：以日期格式命名，eg：2006-01-02.log or 2006-01-02.log
+// 目前为：以日期格式命名，eg：2006-01-02.logs or 2006-01-02.logs
 func (p *FileWriter) getFilename() string {
 	if p.FilenameFunc != nil {
 		return p.FilenameFunc(p)

@@ -3,9 +3,9 @@ package middleware
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"landlord/core/logger"
-	"landlord/sdk/pkg"
 	"strings"
+	"wan_go/core/logger"
+	"wan_go/sdk/pkg"
 )
 
 // RequestId traffic

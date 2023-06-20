@@ -38,7 +38,7 @@ var (
 
 var (
 	ParseTokenMsg               = errors.New("parse token failed")
-	TokenExpiredMsg             = errors.New("token is timed out, please log in again")
+	TokenExpiredMsg             = errors.New("token is timed out, please logs in again")
 	TokenInvalidMsg             = errors.New("token has been invalidated")
 	TokenNotValidYetMsg         = errors.New("token not active yet")
 	TokenMalformedMsg           = errors.New("that's not even a token")
