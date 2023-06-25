@@ -8,20 +8,20 @@ import (
 //todo time format
 
 type FamilyVO struct {
-	ID             int32  `json:"id,omitempty"`
-	UserId         int32  `json:"userId,omitempty"`
-	BgCover        string `json:"bgCover,omitempty" vd:"@:len($)>0; msg:'背景封面不能为空'"`
-	ManCover       string `json:"manCover,omitempty" vd:"@:len($)>0; msg:'男生头像不能为空'"`
-	WomanCover     string `json:"womanCover,omitempty" vd:"@:len($)>0; msg:'女生头像不能为空'"`
-	ManName        string `json:"manName,omitempty" vd:"@:len($)>0; msg:'男生昵称不能为空'"`
-	WomanName      string `json:"womanName,omitempty" vd:"@:len($)>0; msg:'女生昵称不能为空'"`
-	Timing         string `json:"timing,omitempty"`
-	CountdownTitle string `json:"countdownTitle,omitempty"`
-	Status         bool   `json:"status,omitempty"`
-	CountdownTime  string `json:"countdownTime,omitempty"`
-	FamilyInfo     string `json:"familyInfo,omitempty"`
+	ID             int32  `json:"id"`
+	UserId         int32  `json:"userId"`
+	BgCover        string `json:"bgCover" vd:"@:len($)>0; msg:'背景封面不能为空'"`
+	ManCover       string `json:"manCover" vd:"@:len($)>0; msg:'男生头像不能为空'"`
+	WomanCover     string `json:"womanCover" vd:"@:len($)>0; msg:'女生头像不能为空'"`
+	ManName        string `json:"manName" vd:"@:len($)>0; msg:'男生昵称不能为空'"`
+	WomanName      string `json:"womanName" vd:"@:len($)>0; msg:'女生昵称不能为空'"`
+	Timing         string `json:"timing"`
+	CountdownTitle string `json:"countdownTitle"`
+	Status         bool   `json:"status"`
+	CountdownTime  string `json:"countdownTime"`
+	FamilyInfo     string `json:"familyInfo"`
 	//点赞数
-	LikeCount int32     `json:"likeCount,omitempty"`
+	LikeCount int32     `json:"likeCount"`
 	CreatedAt time.Time `json:"createTime"`
 	UpdatedAt time.Time `json:"updateTime"`
 }

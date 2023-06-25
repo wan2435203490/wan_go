@@ -1,7 +1,8 @@
-package blog
+package apis
 
 import (
 	"github.com/gin-gonic/gin"
+	"wan_go/pkg/common/api"
 	"wan_go/pkg/common/cache"
 	"wan_go/pkg/common/constant/blog_const"
 	"wan_go/pkg/common/db/mysql/blog/db_comment"
@@ -10,12 +11,18 @@ import (
 	blogVO "wan_go/pkg/vo/blog"
 )
 
+type CommentApi struct {
+	api.Api
+}
+
 func deleteCommentCache(source int32, typ string) {
 	key := blog_const.COMMENT_COUNT_CACHE + utils.Int32ToString(source) + "_" + typ
 	cache.Delete(key)
 }
 
-func SaveComment(c *gin.Context) {
+func (a CommentApi) SaveComment(c *gin.Context) {
+	a.MakeContext(c)
+
 	var vo blogVO.CommentVO
 	if a.BindFailed(&vo) {
 		return
@@ -25,7 +32,8 @@ func SaveComment(c *gin.Context) {
 	a.DoneApiErr(db_comment.SaveComment(&vo))
 }
 
-func DeleteComment(c *gin.Context) {
+func (a CommentApi) DeleteComment(c *gin.Context) {
+	a.MakeContext(c)
 	var id int
 	if a.IntFailed(&id, "id") {
 		return
@@ -34,7 +42,8 @@ func DeleteComment(c *gin.Context) {
 	a.OK()
 }
 
-func GetCommentCount(c *gin.Context) {
+func (a CommentApi) GetCommentCount(c *gin.Context) {
+	a.MakeContext(c)
 	var source int
 	if a.IntFailed(&source, "source") {
 		return
@@ -47,9 +56,10 @@ func GetCommentCount(c *gin.Context) {
 	a.OK(db_common.GetCommentCount(int32(source), typ))
 }
 
-func ListComment(c *gin.Context) {
+func (a CommentApi) ListComment(c *gin.Context) {
+	a.MakeContext(c)
 	var vo blogVO.BaseRequestVO[*blogVO.CommentVO]
-	if a.BindFailed(&vo) {
+	if a.BindPageFailed(&vo) {
 		return
 	}
 

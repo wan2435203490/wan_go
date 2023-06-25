@@ -33,3 +33,17 @@ func (to *ResourcePathVO) Copy(from *blog.ResourcePath) {
 	to.Introduction = from.Introduction
 	to.CreatedAt = from.CreatedAt
 }
+
+func (from *ResourcePathVO) CopyTo(to *blog.ResourcePath) {
+
+	to.ID = from.ID
+	to.Title = from.Title
+	to.Classify = from.Classify
+	to.Cover = from.Cover
+	to.Url = from.Url
+	to.Introduction = from.Introduction
+	to.Type = from.Type
+	to.Status = from.Status
+	to.Remark = from.Remark
+	to.CreatedAt = from.CreatedAt
+}

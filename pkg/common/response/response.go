@@ -8,9 +8,9 @@ const (
 )
 
 type Response struct {
-	Code    int    `json:"code,omitempty"`
-	Status  int    `json:"status,omitempty"`
-	Message string `json:"message,omitempty"`
+	Code    int    `json:"code"`
+	Status  int    `json:"status"`
+	Message string `json:"message"`
 	Data    any    `json:"data"`
 }
 
@@ -24,12 +24,12 @@ type Response struct {
 // Size == Limit
 // Desc 、 Column  Order By
 type Pagination struct {
-	Current int  `json:"current,omitempty"`
-	Size    int  `json:"size,omitempty"`
-	Total   int  `json:"total,omitempty"`
-	Desc    bool `json:"desc,omitempty"`
+	Current int  `form:"current" json:"current"`
+	Size    int  `form:"size" json:"size"`
+	Total   int  `form:"total" json:"total"`
+	Desc    bool `form:"desc" json:"desc"`
 	//排序的column 需要多个排序的话就将Desc和Column抽象出来 默认按主键排序
-	Column string `json:"column,omitempty"`
+	Column string `form:"column" json:"column"`
 }
 
 func (pagination *Pagination) Order() string {
@@ -54,4 +54,10 @@ var (
 	LOGIN_EXPIRED   = CodeMsg{300, "登录已过期，请重新登录！"}
 	SYSTEM_REPAIR   = CodeMsg{301, "系统维护中，敬请期待！"}
 	FAIL            = CodeMsg{500, "服务异常！"}
+	FAIL_ADMIN      = CodeMsg{500, "请输入管理员账号！"}
+	FAIL_PERSSION   = CodeMsg{500, "权限不足！"}
 )
+
+func (cm *CodeMsg) CodeMsg() (int, string) {
+	return cm.Code, cm.Msg
+}

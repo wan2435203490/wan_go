@@ -1,9 +1,11 @@
-package blog
+package apis
 
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 	"strings"
+	"wan_go/pkg/common/api"
 	"wan_go/pkg/common/constant/blog_const"
 	"wan_go/pkg/common/db/mysql/blog/db_common"
 	"wan_go/pkg/common/db/mysql/blog/db_label"
@@ -13,31 +15,18 @@ import (
 	"wan_go/pkg/utils"
 	blogVO "wan_go/pkg/vo/blog"
 
-	"wan_go/pkg/common/api"
 	"wan_go/pkg/common/cache"
 	"wan_go/pkg/common/db/mysql/blog"
 	"wan_go/pkg/common/db/mysql/blog/db_web_info"
 )
 
-var (
-	a blogApi
-)
-
-type blogApi struct {
+type WebInfoApi struct {
 	api.Api
 }
 
-func Api(c *gin.Context) {
-	if a.MakeContext(c) != nil {
-		c.Abort()
-		return
-	}
-
-	c.Next()
-}
-
 // UpdateWebInfo 更新网站信息
-func UpdateWebInfo(c *gin.Context) {
+func (a WebInfoApi) UpdateWebInfo(c *gin.Context) {
+	a.MakeContext(c)
 	var webInfo blog.WebInfo
 	if a.BindFailed(&webInfo) {
 		return
@@ -59,12 +48,13 @@ func UpdateWebInfo(c *gin.Context) {
 }
 
 // GetWebInfo 获取网站信息
-func GetWebInfo(c *gin.Context) {
+func (a WebInfoApi) GetWebInfo(c *gin.Context) {
+	a.MakeContext(c)
 
 	get, b := cache.Get(blog_const.WEB_INFO)
 	if b {
 		webInfo := get.(*blog.WebInfo)
-		var ret *blog.WebInfo
+		var ret blog.WebInfo
 		ret.Copy(webInfo)
 
 		ret.RandomName = ""
@@ -73,32 +63,38 @@ func GetWebInfo(c *gin.Context) {
 		ret.WaifuJson = ""
 
 		a.OK(ret)
+		return
 	}
 
 	a.OK()
 }
 
 // GetAdmire 获取赞赏
-func GetAdmire(c *gin.Context) {
+func (a WebInfoApi) GetAdmire(c *gin.Context) {
+	a.MakeContext(c)
 	admire := db_common.GetAdmire()
 	a.OK(admire)
 }
 
 // GetSortInfo 获取分类标签信息
-func GetSortInfo(c *gin.Context) {
+func (a WebInfoApi) GetSortInfo(c *gin.Context) {
+	a.MakeContext(c)
 	if get, b := cache.Get(blog_const.SORT_INFO); b {
 		a.OK(get.(*[]*blog.Sort))
+		return
 	}
 
 	a.OK()
 }
 
 // GetWifeJson 获取看板娘消息
-func GetWifeJson(c *gin.Context) {
+func (a WebInfoApi) GetWifeJson(c *gin.Context) {
+	a.MakeContext(c)
 	if get, b := cache.Get(blog_const.WEB_INFO); b {
 		info := get.(string)
 		if len(strings.TrimSpace(info)) > 0 {
 			a.OK(info)
+			return
 		}
 	}
 
@@ -106,7 +102,8 @@ func GetWifeJson(c *gin.Context) {
 }
 
 // SaveResourcePath 保存
-func SaveResourcePath(c *gin.Context) {
+func (a WebInfoApi) SaveResourcePath(c *gin.Context) {
+	a.MakeContext(c)
 	var resourcePathVO blogVO.ResourcePathVO
 	if a.BindFailed(&resourcePathVO) {
 		return
@@ -123,34 +120,19 @@ func SaveResourcePath(c *gin.Context) {
 			resourcePathVO.Remark = fmt.Sprintf("%d", admin.ID)
 		}
 	}
+	resourcePath := blog.ResourcePath{}
+	resourcePathVO.CopyTo(&resourcePath)
 
-	resourcePath := CopyResourcePath(&resourcePathVO)
-
-	if a.IsError(db_resource_path.Insert(resourcePath)) {
+	if a.IsError(db_resource_path.Insert(&resourcePath)) {
 		return
 	}
 
 	a.OK()
 }
 
-func CopyResourcePath(from *blogVO.ResourcePathVO) *blog.ResourcePath {
-
-	to := blog.ResourcePath{}
-	to.ID = from.ID
-	to.Title = from.Title
-	to.Classify = from.Classify
-	to.Cover = from.Cover
-	to.Url = from.Url
-	to.Introduction = from.Introduction
-	to.Type = from.Type
-	to.Status = from.Status
-	to.Remark = from.Remark
-	to.CreatedAt = from.CreatedAt
-	return &to
-}
-
 // SaveFriend 保存友链
-func SaveFriend(c *gin.Context) {
+func (a WebInfoApi) SaveFriend(c *gin.Context) {
+	a.MakeContext(c)
 
 	var vo blogVO.ResourcePathVO
 	if a.BindFailed(&vo) {
@@ -184,7 +166,8 @@ func copyResourcePath(vo *blogVO.ResourcePathVO) *blog.ResourcePath {
 	return &path
 }
 
-func DeleteResourcePath(c *gin.Context) {
+func (a WebInfoApi) DeleteResourcePath(c *gin.Context) {
+	a.MakeContext(c)
 	id := a.Param("id")
 
 	if id == "" {
@@ -198,7 +181,8 @@ func DeleteResourcePath(c *gin.Context) {
 }
 
 // UpdateResourcePath 更新
-func UpdateResourcePath(c *gin.Context) {
+func (a WebInfoApi) UpdateResourcePath(c *gin.Context) {
+	a.MakeContext(c)
 	var resourcePathVO blogVO.ResourcePathVO
 	if a.BindFailed(&resourcePathVO) {
 		return
@@ -219,9 +203,10 @@ func UpdateResourcePath(c *gin.Context) {
 		}
 	}
 
-	resourcePath := CopyResourcePath(&resourcePathVO)
+	resourcePath := blog.ResourcePath{}
+	resourcePathVO.CopyTo(&resourcePath)
 
-	if a.IsError(db_resource_path.Update(resourcePath)) {
+	if a.IsError(db_resource_path.Update(&resourcePath)) {
 		return
 	}
 
@@ -229,9 +214,10 @@ func UpdateResourcePath(c *gin.Context) {
 }
 
 // ListResourcePath 查询资源
-func ListResourcePath(c *gin.Context) {
+func (a WebInfoApi) ListResourcePath(c *gin.Context) {
+	a.MakeContext(c)
 	var requestVO blogVO.BaseRequestVO[*blogVO.ResourcePathVO]
-	if a.BindFailed(&requestVO) {
+	if a.BindPageFailed(&requestVO) {
 		return
 	}
 
@@ -243,19 +229,22 @@ func ListResourcePath(c *gin.Context) {
 }
 
 // ListFunny 查询音乐
-func ListFunny(c *gin.Context) {
+func (a WebInfoApi) ListFunny(c *gin.Context) {
+	a.MakeContext(c)
 	ret := db_resource_path.ListFunny()
 	a.OK(ret)
 }
 
 // ListCollect 查询收藏
-func ListCollect(c *gin.Context) {
+func (a WebInfoApi) ListCollect(c *gin.Context) {
+	a.MakeContext(c)
 	ret := db_resource_path.ListCollect()
 	a.OK(ret)
 }
 
 // SaveFunny 保存音乐
-func SaveFunny(c *gin.Context) {
+func (a WebInfoApi) SaveFunny(c *gin.Context) {
+	a.MakeContext(c)
 	var vo blogVO.ResourcePathVO
 	if a.BindFailed(&vo) {
 		return
@@ -276,13 +265,15 @@ func SaveFunny(c *gin.Context) {
 }
 
 // ListAdminLovePhoto 查询爱情
-func ListAdminLovePhoto(c *gin.Context) {
+func (a WebInfoApi) ListAdminLovePhoto(c *gin.Context) {
+	a.MakeContext(c)
 	ret := db_resource_path.ListAdminLovePhoto(a.AdminId())
 	a.OK(ret)
 }
 
 // SaveLovePhoto 保存爱情
-func SaveLovePhoto(c *gin.Context) {
+func (a WebInfoApi) SaveLovePhoto(c *gin.Context) {
+	a.MakeContext(c)
 	var vo blogVO.ResourcePathVO
 	if a.BindFailed(&vo) {
 		return
@@ -302,7 +293,8 @@ func SaveLovePhoto(c *gin.Context) {
 }
 
 // SaveTreeHole 树洞
-func SaveTreeHole(c *gin.Context) {
+func (a WebInfoApi) SaveTreeHole(c *gin.Context) {
+	a.MakeContext(c)
 	var treeHole blog.TreeHole
 	if a.BindFailed(&treeHole) {
 		return
@@ -318,19 +310,21 @@ func SaveTreeHole(c *gin.Context) {
 
 	if utils.IsEmpty(treeHole.Avatar) {
 		//todo
-		//treeHole.Avatar = randomAvatars
+		//treeHole.Avatar = utils.RandomAvatars()
 	}
 
 	a.OK()
 
 }
 
-func DeleteTreeHole(c *gin.Context) {
+func (a WebInfoApi) DeleteTreeHole(c *gin.Context) {
+	a.MakeContext(c)
 	id := utils.StringToInt32(a.Param("id"))
 	a.Done(db_tree_hole.Delete(&blog.TreeHole{ID: id}))
 }
 
-func ListTreeHole(c *gin.Context) {
+func (a WebInfoApi) ListTreeHole(c *gin.Context) {
+	a.MakeContext(c)
 
 	treeHoles := db_tree_hole.List()
 	if treeHoles == nil {
@@ -348,9 +342,10 @@ func ListTreeHole(c *gin.Context) {
 }
 
 // SaveSort 分类
-func SaveSort(c *gin.Context) {
+func (a WebInfoApi) SaveSort(c *gin.Context) {
+	a.MakeContext(c)
 	var sort blog.Sort
-	if a.BindFailed(&sort) {
+	if a.BindFailed(&sort, binding.JSON) {
 		return
 	}
 
@@ -372,7 +367,8 @@ func SaveSort(c *gin.Context) {
 	a.OK()
 }
 
-func DeleteSort(c *gin.Context) {
+func (a WebInfoApi) DeleteSort(c *gin.Context) {
+	a.MakeContext(c)
 	id := utils.StringToInt32(a.Param("id"))
 
 	err := db_sort.Delete(&blog.Sort{ID: id})
@@ -382,7 +378,8 @@ func DeleteSort(c *gin.Context) {
 	a.Done(err)
 }
 
-func UpdateSort(c *gin.Context) {
+func (a WebInfoApi) UpdateSort(c *gin.Context) {
+	a.MakeContext(c)
 	var sort blog.Sort
 	if a.BindFailed(&sort) {
 		return
@@ -395,12 +392,14 @@ func UpdateSort(c *gin.Context) {
 	a.Done(err)
 }
 
-func ListSort(c *gin.Context) {
+func (a WebInfoApi) ListSort(c *gin.Context) {
+	a.MakeContext(c)
 	a.OK(db_sort.List())
 }
 
 // SaveLabel 标签
-func SaveLabel(c *gin.Context) {
+func (a WebInfoApi) SaveLabel(c *gin.Context) {
+	a.MakeContext(c)
 	var label blog.Label
 	if a.BindFailed(&label) {
 		return
@@ -423,7 +422,8 @@ func SaveLabel(c *gin.Context) {
 	a.OK()
 }
 
-func DeleteLabel(c *gin.Context) {
+func (a WebInfoApi) DeleteLabel(c *gin.Context) {
+	a.MakeContext(c)
 	id := utils.StringToInt32(a.Param("id"))
 
 	err := db_label.Delete(&blog.Label{ID: id})
@@ -433,7 +433,8 @@ func DeleteLabel(c *gin.Context) {
 	a.Done(err)
 }
 
-func UpdateLabel(c *gin.Context) {
+func (a WebInfoApi) UpdateLabel(c *gin.Context) {
+	a.MakeContext(c)
 	var label blog.Label
 	if a.BindFailed(&label) {
 		return
@@ -446,11 +447,13 @@ func UpdateLabel(c *gin.Context) {
 	a.Done(err)
 }
 
-func ListLabel(c *gin.Context) {
+func (a WebInfoApi) ListLabel(c *gin.Context) {
+	a.MakeContext(c)
 	a.OK(db_label.List())
 }
 
-func ListSortAndLabel(c *gin.Context) {
+func (a WebInfoApi) ListSortAndLabel(c *gin.Context) {
+	a.MakeContext(c)
 	sorts := db_sort.List()
 	labels := db_label.List()
 

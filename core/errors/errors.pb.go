@@ -26,17 +26,17 @@ type Error struct {
 	unknownFields protoimpl.UnknownFields
 
 	// Success if request is success
-	Success bool `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Success bool `protobuf:"varint,1,opt,name=success,proto3" json:"success"`
 	// ErrorCode code for errorType
-	ErrorCode string `protobuf:"bytes,2,opt,name=errorCode,proto3" json:"errorCode,omitempty"`
+	ErrorCode string `protobuf:"bytes,2,opt,name=errorCode,proto3" json:"errorCode"`
 	// ErrorMessage message display to db_user
-	ErrorMessage string `protobuf:"bytes,3,opt,name=errorMessage,proto3" json:"errorMessage,omitempty"`
+	ErrorMessage string `protobuf:"bytes,3,opt,name=errorMessage,proto3" json:"errorMessage"`
 	// ShowType error display type： 0 silent; 1 message.warn; 2 message.error; 4 notification; 9 page
-	ShowType string `protobuf:"bytes,4,opt,name=showType,proto3" json:"showType,omitempty"`
+	ShowType string `protobuf:"bytes,4,opt,name=showType,proto3" json:"showType"`
 	// TraceId Convenient for back-end Troubleshooting: unique request ID
-	TraceId string `protobuf:"bytes,5,opt,name=traceId,proto3" json:"traceId,omitempty"`
+	TraceId string `protobuf:"bytes,5,opt,name=traceId,proto3" json:"traceId"`
 	// Domain onvenient for backend Troubleshooting: host of current access server
-	Domain string `protobuf:"bytes,6,opt,name=domain,proto3" json:"domain,omitempty"`
+	Domain string `protobuf:"bytes,6,opt,name=domain,proto3" json:"domain"`
 }
 
 func (x *Error) Reset() {

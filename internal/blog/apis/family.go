@@ -1,8 +1,9 @@
-package blog
+package apis
 
 import (
 	"github.com/gin-gonic/gin"
 	"math/rand"
+	"wan_go/pkg/common/api"
 	"wan_go/pkg/common/cache"
 	"wan_go/pkg/common/constant/blog_const"
 	"wan_go/pkg/common/db/mysql/blog"
@@ -10,6 +11,10 @@ import (
 	"wan_go/pkg/common/db/mysql/blog/db_family"
 	blogVO "wan_go/pkg/vo/blog"
 )
+
+type FamilyApi struct {
+	api.Api
+}
 
 func deleteFamilyListCache() {
 	//cache.Delete(blog_const.ADMIN_FAMILY)
@@ -20,7 +25,8 @@ func cacheAdminFamily(family *blog.Family) {
 	cache.Set(blog_const.ADMIN_FAMILY, family)
 }
 
-func SaveFamily(c *gin.Context) {
+func (a FamilyApi) SaveFamily(c *gin.Context) {
+	a.MakeContext(c)
 	var vo blogVO.FamilyVO
 	if a.BindFailed(&vo) {
 		return
@@ -51,7 +57,8 @@ func SaveFamily(c *gin.Context) {
 	a.OK()
 }
 
-func DeleteFamily(c *gin.Context) {
+func (a FamilyApi) DeleteFamily(c *gin.Context) {
+	a.MakeContext(c)
 	var id int
 	if a.IntFailed(&id, "id") {
 		return
@@ -61,7 +68,8 @@ func DeleteFamily(c *gin.Context) {
 	a.OK()
 }
 
-func GetFamily(c *gin.Context) {
+func (a FamilyApi) GetFamily(c *gin.Context) {
+	a.MakeContext(c)
 	userId := cache.GetUserId()
 	family := db_family.GetByUserId(userId)
 
@@ -74,7 +82,8 @@ func GetFamily(c *gin.Context) {
 	}
 }
 
-func GetAdminFamily(c *gin.Context) {
+func (a FamilyApi) GetAdminFamily(c *gin.Context) {
+	a.MakeContext(c)
 
 	family, ok := cache.Get(blog_const.ADMIN_FAMILY)
 	if !ok {
@@ -91,7 +100,8 @@ func GetAdminFamily(c *gin.Context) {
 	}
 }
 
-func ListRandomFamily(c *gin.Context) {
+func (a FamilyApi) ListRandomFamily(c *gin.Context) {
+	a.MakeContext(c)
 
 	var size int
 	if a.IntFailed(&size, "size") {
@@ -114,9 +124,10 @@ func ListRandomFamily(c *gin.Context) {
 	a.OK(&list)
 }
 
-func ListFamily(c *gin.Context) {
+func (a FamilyApi) ListFamily(c *gin.Context) {
+	a.MakeContext(c)
 	var vo blogVO.BaseRequestVO[*blog.Family]
-	if a.BindFailed(&vo) {
+	if a.BindPageFailed(&vo) {
 		return
 	}
 
@@ -125,7 +136,8 @@ func ListFamily(c *gin.Context) {
 	a.OK(&vo)
 }
 
-func ChangeLoveStatus(c *gin.Context) {
+func (a FamilyApi) ChangeLoveStatus(c *gin.Context) {
+	a.MakeContext(c)
 	var id int
 	if a.IntFailed(&id, "id") {
 		return

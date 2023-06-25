@@ -28,6 +28,7 @@ func Options(c *gin.Context) {
 		c.Header("Allow", "HEAD,GET,POST,PUT,PATCH,DELETE,OPTIONS")
 		c.Header("Content-Type", "application/json")
 		c.AbortWithStatus(200)
+		return
 	}
 }
 

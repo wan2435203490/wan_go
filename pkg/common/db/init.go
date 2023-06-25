@@ -45,10 +45,13 @@ func Mysql() *gorm.DB {
 // Page todo 怎么改成传BaseRequestVO[T]？
 func Page(pagination *r.Pagination) (db *gorm.DB) {
 
+	//if pagination.Current == 0 {
+	//	pagination.Current = 1
+	//}
 	db = Mysql().
 		Order(pagination.Order()).
 		Limit(pagination.Size).
-		Offset(pagination.Current)
+		Offset(pagination.Current - 1)
 
 	return
 }

@@ -1,17 +1,23 @@
-package blog
+package apis
 
 import (
 	"github.com/gin-gonic/gin"
 	"strings"
+	"wan_go/pkg/common/api"
 	"wan_go/pkg/common/cache"
-	"wan_go/pkg/common/constant/blog_const"
+	"wan_go/pkg/common/config"
 	"wan_go/pkg/common/db/mysql/blog"
 	"wan_go/pkg/common/db/mysql/blog/db_resource"
 	"wan_go/pkg/utils"
 	blogVO "wan_go/pkg/vo/blog"
 )
 
-func SaveResource(c *gin.Context) {
+type ResourceApi struct {
+	api.Api
+}
+
+func (a ResourceApi) SaveResource(c *gin.Context) {
+	a.MakeContext(c)
 	var vo blog.Resource
 	if a.BindFailed(&vo) {
 		return
@@ -35,26 +41,28 @@ func SaveResource(c *gin.Context) {
 	a.OK()
 }
 
-func DeleteResource(c *gin.Context) {
+func (a ResourceApi) DeleteResource(c *gin.Context) {
+	a.MakeContext(c)
 	var path string
 	if a.StringFailed(&path, "path") {
 		return
 	}
 
-	path = strings.ReplaceAll(path, blog_const.DOWNLOAD_URL, "")
+	path = strings.ReplaceAll(path, config.Config.Qiniu.Url, "")
 
 	utils.DeleteQiniuFile(path)
 
 	a.Done(db_resource.DeleteByPath(path))
 }
 
-func GetResourceInfo(c *gin.Context) {
+func (a ResourceApi) GetResourceInfo(c *gin.Context) {
+	a.MakeContext(c)
 	resources := db_resource.GetResourceInfo()
 	if resources != nil {
 		resourceMap := make(map[string]int32, 16)
 		keys := make([]string, 0)
 		for _, resource := range *resources {
-			path := strings.ReplaceAll(resource.Path, blog_const.DOWNLOAD_URL, "")
+			path := strings.ReplaceAll(resource.Path, config.Config.Qiniu.Url, "")
 			resourceMap[path] = resource.ID
 			keys = append(keys, path)
 		}
@@ -77,7 +85,8 @@ func GetResourceInfo(c *gin.Context) {
 	a.OK()
 }
 
-func GetImageList(c *gin.Context) {
+func (a ResourceApi) GetImageList(c *gin.Context) {
+	a.MakeContext(c)
 
 	list := db_resource.GetImageList()
 
@@ -91,9 +100,10 @@ func GetImageList(c *gin.Context) {
 	a.OK(&paths)
 }
 
-func ListResource(c *gin.Context) {
+func (a ResourceApi) ListResource(c *gin.Context) {
+	a.MakeContext(c)
 	var vo blogVO.BaseRequestVO[*blog.Resource]
-	if a.BindFailed(&vo) {
+	if a.BindPageFailed(&vo) {
 		return
 	}
 
@@ -102,7 +112,8 @@ func ListResource(c *gin.Context) {
 	a.OK(&vo)
 }
 
-func ChangeResourceStatus(c *gin.Context) {
+func (a ResourceApi) ChangeResourceStatus(c *gin.Context) {
+	a.MakeContext(c)
 	var id int
 	if a.IntFailed(&id, "id") {
 		return

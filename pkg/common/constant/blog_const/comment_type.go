@@ -14,7 +14,9 @@ var (
 func ExistsCommentType(code string) bool {
 	switch code {
 	case COMMENT_TYPE_ARTICLE.Code:
+		fallthrough
 	case COMMENT_TYPE_MESSAGE.Code:
+		fallthrough
 	case COMMENT_TYPE_LOVE.Code:
 		return true
 	}

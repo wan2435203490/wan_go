@@ -16,12 +16,21 @@ import (
 	blogVO "wan_go/pkg/vo/blog"
 )
 
-const REGEX = "\\d{11}"
+// 匹配规则// ^1第一位为一// [345789]{1} 后接一位345789 的数字// \\d \d的转义 表示数字 {9} 接9位
+const RegRuler = "^1[345789]{1}\\d{9}$"
+
+// todo 新增正则util
+func isMobile(phoneNumber string) bool {
+	//正则调用规则
+	reg := regexp.MustCompile(RegRuler)
+	// 返回 MatchString 是否匹配
+	return reg.MatchString(phoneNumber)
+}
 
 func Register(userIn *blogVO.UserVO) *blogVO.UserVO {
 	var userOut blogVO.UserVO
-	if matched, err := regexp.MatchString(userIn.UserName, REGEX); matched || err != nil {
-		userOut.Msg = "用户名不能为11位数字！"
+	if isMobile(userIn.UserName) {
+		userOut.Msg = "用户名不能为电话号码！"
 		return &userOut
 	}
 
@@ -44,20 +53,20 @@ func Register(userIn *blogVO.UserVO) *blogVO.UserVO {
 		}
 		cache.Delete(key)
 	} else if utils.IsNotEmpty(userIn.Email) {
-		key := blog_const.FORGET_PASSWORD + userIn.Email + "_2"
-		get, b := cache.GetString(key)
-		if !b || get != userIn.Code {
-			userOut.Msg = "验证码错误！"
-			return &userOut
-		}
-		cache.Delete(key)
+		//key := blog_const.FORGET_PASSWORD + userIn.Email + "_2"
+		//get, b := cache.GetString(key)
+		//if !b || get != userIn.Code {
+		//	userOut.Msg = "验证码错误！"
+		//	return &userOut
+		//}
+		//cache.Delete(key)
 	} else {
 		userOut.Msg = "请输入邮箱或手机号！"
 		return &userOut
 	}
 
-	enc, _ := utils.AesEncrypt([]byte(userIn.Password), []byte(blog_const.CRYPOTJS_KEY))
-	userIn.Password = string(enc)
+	enc := utils.AesEncryptCrypotJsKey(userIn.Password)
+	userIn.Password = enc
 
 	var count int64
 	if err := db.Mysql().Model(&blog.User{}).Where("user_name=?", userIn.UserName).Count(&count).Error; err != nil {
@@ -130,13 +139,13 @@ func Register(userIn *blogVO.UserVO) *blogVO.UserVO {
 
 	imChatUser := blog.ImChatUserFriend{}
 	imChatUser.UserId = user.ID
-	imChatUser.FriendId = cache.GetAdminUser().ID
+	imChatUser.FriendId = int32(cache.GetAdminUserId())
 	imChatUser.Remark = "站长"
 	imChatUser.FriendStatus = blog_const.FRIEND_STATUS_PASS
 	_ = db_im_chat_group_friend.Insert(&imChatUser)
 
 	imChatFriend := blog.ImChatUserFriend{}
-	imChatFriend.UserId = cache.GetAdminUser().ID
+	imChatFriend.UserId = int32(cache.GetAdminUserId())
 	imChatFriend.FriendId = user.ID
 	imChatFriend.FriendStatus = blog_const.FRIEND_STATUS_PASS
 	_ = db_im_chat_group_friend.Insert(&imChatFriend)
@@ -144,18 +153,17 @@ func Register(userIn *blogVO.UserVO) *blogVO.UserVO {
 	return &userOut
 }
 
-func Login(account string, password []byte, isAdmin bool) *blogVO.UserVO {
+func Login(account string, password string, isAdmin bool) *blogVO.UserVO {
 
 	var userVO blogVO.UserVO
 
 	var err error
-	if password, err = utils.AesDecrypt(password, []byte(blog_const.CRYPOTJS_KEY)); err != nil {
-		return nil
-	}
+	password = utils.AesDecryptCrypotJsKey(password)
+	password = utils.Md5(password)
 
 	var user blog.User
-	if err = db.Mysql().Where("password = ? and (user_name = @account or email = @account or phone_number = @account)",
-		password, sql.Named("account", account)).First(&user).Error; err != nil {
+	if err = db.Mysql().Debug().Where("password = @password and (user_name = @account or email = @account or phone_number = @account)",
+		sql.Named("password", password), sql.Named("account", account)).First(&user).Error; err != nil {
 		userVO.Msg = "账号/密码错误，请重新输入！"
 		return &userVO
 	}
@@ -178,7 +186,7 @@ func Login(account string, password []byte, isAdmin bool) *blogVO.UserVO {
 }
 
 func adminLogin(user *blog.User, userVO *blogVO.UserVO) {
-	var adminToken string
+	var token string
 
 	if user.UserType != blog_const.USER_TYPE_ADMIN.Code && user.UserType != blog_const.USER_TYPE_DEV.Code {
 		userVO.Msg = "请输入管理员账号！"
@@ -186,43 +194,43 @@ func adminLogin(user *blog.User, userVO *blogVO.UserVO) {
 
 	key := blog_const.ADMIN_TOKEN + utils.Int32ToString(user.ID)
 	if get, b := cache.Get(key); b {
-		adminToken = get.(string)
+		token = get.(string)
 	}
 
-	if utils.IsEmpty(adminToken) {
-		adminToken = blog_const.ADMIN_ACCESS_TOKEN + utils.UUID()
-		cache.Set(adminToken, &user)
-		cache.Set(key, adminToken)
+	if utils.IsEmpty(token) {
+		token = blog_const.ADMIN_ACCESS_TOKEN + utils.UUID()
+		cache.Set(token, user)
+		cache.Set(key, token)
 	}
 
 	if user.UserType == blog_const.USER_TYPE_ADMIN.Code {
 		userVO.IsBoss = true
 	}
-	userVO.AccessToken = adminToken
+	userVO.AccessToken = token
 }
 
 func userLogin(user *blog.User, userVO *blogVO.UserVO) {
-	var userToken string
+	var token string
 
 	key := blog_const.USER_TOKEN + utils.Int32ToString(user.ID)
 	if get, b := cache.Get(key); b {
-		userToken = get.(string)
+		token = get.(string)
 	}
 
-	if utils.IsEmpty(userToken) {
-		userToken = blog_const.USER_ACCESS_TOKEN + utils.UUID()
-		cache.Set(userToken, &user)
-		cache.Set(key, userToken)
+	if utils.IsEmpty(token) {
+		token = blog_const.USER_ACCESS_TOKEN + utils.UUID()
+		cache.Set(token, user)
+		cache.Set(key, token)
 	}
-	userVO.AccessToken = userToken
+	userVO.AccessToken = token
 }
 
 func LoginByToken(token string) *blogVO.UserVO {
 
 	var userVO blogVO.UserVO
-	token, err := utils.AesDecryptByString(token, blog_const.CRYPOTJS_KEY)
-	if err != nil || utils.IsEmpty(token) {
-		userVO.Msg = "未登录，请登陆后再进行操作！"
+	token = utils.AesDecryptCrypotJsKey(token)
+	if utils.IsEmpty(token) {
+		userVO.Msg = "未登录，请登录后再进行操作！"
 		return &userVO
 	}
 	if get, b := cache.Get(token); !b {
@@ -249,8 +257,8 @@ func Exit(token string, userId int32) {
 
 func UpdateUserInfo(userIn *blogVO.UserVO, userToken string) *blogVO.UserVO {
 	var userOut blogVO.UserVO
-	if matched, err := regexp.MatchString(userIn.UserName, REGEX); !matched || err != nil {
-		userOut.Msg = "用户名不能为11位数字！"
+	if isMobile(userIn.UserName) {
+		userOut.Msg = "用户名不能为电话号码！"
 		return &userOut
 	}
 
@@ -298,7 +306,7 @@ func UpdateUserInfo(userIn *blogVO.UserVO, userToken string) *blogVO.UserVO {
 }
 
 func UpdateSecretInfo(place, flag, captcha, password string, user *blog.User) *blogVO.UserVO {
-	password, _ = utils.AesDecryptByString(password, blog_const.CRYPOTJS_KEY)
+	password = utils.AesDecryptCrypotJsKey(password)
 
 	userVO := blogVO.UserVO{}
 	if flag == "1" || flag == "2" {
@@ -397,7 +405,7 @@ func WrapError(msg string) *r.CodeMsg {
 
 func UpdateForForgetPassword(place, flag, captcha, password string) *r.CodeMsg {
 
-	password, _ = utils.AesDecryptByString(password, blog_const.CRYPOTJS_KEY)
+	password = utils.AesDecryptCrypotJsKey(password)
 
 	key := blog_const.FORGET_PASSWORD + place + "_" + flag
 	codeCache, b := cache.GetString(key)
@@ -447,6 +455,12 @@ func UpdateForForgetPassword(place, flag, captcha, password string) *r.CodeMsg {
 
 func Get(user *blog.User) error {
 	return db.Mysql().Find(&user).Error
+}
+
+func GetByUserType(userType int8) *blog.User {
+	user := blog.User{}
+	db.Mysql().Where("user_type=?", userType).Find(&user)
+	return &user
 }
 
 //db.DB.MysqlDB.Where("name LIKE ?", "group%")
@@ -503,7 +517,7 @@ func ListUser(vo *blogVO.BaseRequestVO[*blog.User]) {
 	if utils.IsNotEmpty(vo.SearchKey) {
 		tx.Where("(user_name=@searchKey or phone_number=@searchKey)", sql.Named("searchKey", vo.SearchKey))
 	}
-	if err := tx.Omit("password, open_id").Order("CreatedAt DESC").Find(&users).Error; err != nil {
+	if err := tx.Omit("password, open_id").Order("created_at DESC").Find(&users).Error; err != nil {
 		return
 	}
 

@@ -1,0 +1,22 @@
+#go get -u github.com/cosmtrek/air
+# main configuration
+root = "."  # 根目录
+tmp_dir = ""
+build_dir = ""
+app_port = 8081
+log_prefix = "[AIRS]"
+log_time_format = "2006-01-02 15:04:05"
+log_output = "stdout"
+
+# watch configuration
+[[watcher]]
+name = "all"
+paths = ["."]
+
+# run configuration
+[run]
+watcher = ["all"]
+listener = "127.0.0.1"
+port = 8081
+env = []
+args = []

@@ -24,6 +24,13 @@ type config struct {
 		CaptchaFormat string `yaml:"captchaFormat"`
 	} `yaml:"user"`
 
+	Qiniu struct {
+		Url       string `yaml:"url"`
+		Bucket    string `yaml:"bucket"`
+		AccessKey string `yaml:"accessKey"`
+		SecretKey string `yaml:"secretKey"`
+	} `yaml:"qiniu"`
+
 	Mail struct {
 		Host            string `yaml:"host"`
 		Username        string `yaml:"userName"`
@@ -196,6 +203,7 @@ type config struct {
 		SuperCode    string `yaml:"superCode"`
 		CodeTTL      int    `yaml:"codeTTL"`
 		UseSuperCode bool   `yaml:"useSuperCode"`
+		CrypotJSKey  string `yaml:"crypotJSKey""`
 		Mail         struct {
 			Title                   string `yaml:"title"`
 			SenderMail              string `yaml:"senderMail"`

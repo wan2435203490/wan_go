@@ -1,19 +1,25 @@
-package blog
+package apis
 
 import (
 	"github.com/gin-gonic/gin"
+	"wan_go/pkg/common/api"
 	"wan_go/pkg/common/cache"
 	"wan_go/pkg/common/constant/blog_const"
 	"wan_go/pkg/common/db/mysql/blog/db_article"
 	blogVO "wan_go/pkg/vo/blog"
 )
 
+type ArticleApi struct {
+	api.Api
+}
+
 func deleteArticleCache() {
 	key := blog_const.USER_ARTICLE_LIST + cache.GetUserIdStr()
 	cache.Delete(key)
 }
 
-func SaveArticle(c *gin.Context) {
+func (a ArticleApi) SaveArticle(c *gin.Context) {
+	a.MakeContext(c)
 	var vo blogVO.ArticleVO
 	if a.BindFailed(&vo) {
 		return
@@ -23,7 +29,8 @@ func SaveArticle(c *gin.Context) {
 	a.Done(db_article.InsertVO(&vo))
 }
 
-func DeleteArticle(c *gin.Context) {
+func (a ArticleApi) DeleteArticle(c *gin.Context) {
+	a.MakeContext(c)
 	var id int
 	if a.IntFailed(&id, "id") {
 		return
@@ -32,7 +39,8 @@ func DeleteArticle(c *gin.Context) {
 	a.Done(db_article.DeleteByUserId(id))
 }
 
-func UpdateArticle(c *gin.Context) {
+func (a ArticleApi) UpdateArticle(c *gin.Context) {
+	a.MakeContext(c)
 	var vo blogVO.ArticleVO
 	if a.BindFailed(&vo) {
 		return
@@ -43,7 +51,8 @@ func UpdateArticle(c *gin.Context) {
 
 // GetArticleById
 // flag = true 查询可见的文章
-func GetArticleById(c *gin.Context) {
+func (a ArticleApi) GetArticleById(c *gin.Context) {
+	a.MakeContext(c)
 	var id int
 	if a.IntFailed(&id, "id") {
 		return
@@ -59,9 +68,10 @@ func GetArticleById(c *gin.Context) {
 }
 
 // ListArticle 查询文章List
-func ListArticle(c *gin.Context) {
+func (a ArticleApi) ListArticle(c *gin.Context) {
+	a.MakeContext(c)
 	var vo blogVO.BaseRequestVO[*blogVO.ArticleVO]
-	if a.BindFailed(&vo) {
+	if a.BindPageFailed(&vo) {
 		return
 	}
 

@@ -99,7 +99,7 @@ func GetCommentCount(source int32, typ string) int {
 		return 0
 	}
 
-	cache.Set(key, count)
+	cache.Set(key, int(count))
 
 	return int(count)
 }

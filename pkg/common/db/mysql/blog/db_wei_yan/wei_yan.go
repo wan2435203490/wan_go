@@ -23,7 +23,7 @@ func ListNews(vo *blogVO.BaseRequestVO[*blog.WeiYan]) {
 
 	db.Page(&vo.Pagination).Where("type=? and source=? and is_public=?",
 		blog_const.WEIYAN_TYPE_NEWS, vo.Source, blog_const.PUBLIC.Code).
-		Order("CreatedAt DESC").Find(&vo.Records)
+		Order("created_at DESC").Find(&vo.Records)
 }
 
 func ListWeiYan(vo *blogVO.BaseRequestVO[*blog.WeiYan]) {
@@ -46,5 +46,5 @@ func ListWeiYan(vo *blogVO.BaseRequestVO[*blog.WeiYan]) {
 		tx.Where("user_id=?", vo.UserId)
 	}
 
-	tx.Order("CreatedAt DESC").Find(&vo.Records)
+	tx.Order("created_at DESC").Find(&vo.Records)
 }

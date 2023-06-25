@@ -1,9 +1,10 @@
-package blog
+package apis
 
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"time"
+	"wan_go/pkg/common/api"
 	"wan_go/pkg/common/cache"
 	"wan_go/pkg/common/config"
 	"wan_go/pkg/common/constant/blog_const"
@@ -14,9 +15,22 @@ import (
 	blogVO "wan_go/pkg/vo/blog"
 )
 
-func Register(c *gin.Context) {
+type UserApi struct {
+	api.Api
+}
+
+func (a UserApi) Register(c *gin.Context) {
+	a.MakeContext(c)
 	var vo blogVO.UserVO
 	if a.BindFailed(&vo) {
+		return
+	}
+
+	if a.IsFailed(utils.IsEmpty(vo.UserName), "用户名不能为空") {
+		return
+	}
+
+	if a.IsFailed(utils.IsEmpty(vo.Password), "密码不能为空") {
 		return
 	}
 
@@ -25,18 +39,24 @@ func Register(c *gin.Context) {
 	a.OK(userVO)
 }
 
-func Login(c *gin.Context) {
+func (a UserApi) Login(c *gin.Context) {
+	a.MakeContext(c)
 
-	account := a.Param("account")
-	password := a.Param("password")
-	//isAdmin := a.Param("isAdmin")
+	var loginVO blogVO.LoginVO
+	if a.BindFailed(&loginVO) {
+		return
+	}
+	if a.IsFailed(utils.IsEmpty(loginVO.Password), "密码不能为空") {
+		return
+	}
 
-	userVO := db_user.Login(account, []byte(password), false)
+	userVO := db_user.Login(loginVO.Account, loginVO.Password, loginVO.IsAdmin)
 
 	a.OK(userVO)
 }
 
-func LoginByToken(c *gin.Context) {
+func (a UserApi) LoginByToken(c *gin.Context) {
+	a.MakeContext(c)
 
 	userToken := a.Param("userToken")
 
@@ -45,14 +65,16 @@ func LoginByToken(c *gin.Context) {
 	a.OK(userVO)
 }
 
-func Logout(c *gin.Context) {
+func (a UserApi) Logout(c *gin.Context) {
+	a.MakeContext(c)
 	token := a.GetToken()
 	userId := a.GetCurrentUserId()
 	db_user.Exit(token, userId)
 	a.OK()
 }
 
-func UpdateUserInfo(c *gin.Context) {
+func (a UserApi) UpdateUserInfo(c *gin.Context) {
+	a.MakeContext(c)
 	var vo blogVO.UserVO
 	if a.BindFailed(&vo) {
 		return
@@ -62,8 +84,8 @@ func UpdateUserInfo(c *gin.Context) {
 
 	vo.ID = a.GetCurrentUserId()
 	userToken := a.GetToken()
-	db_user.UpdateUserInfo(&vo, userToken)
-	a.OK(&vo)
+	ret := db_user.UpdateUserInfo(&vo, userToken)
+	a.OK(ret)
 }
 
 /**
@@ -72,19 +94,21 @@ func UpdateUserInfo(c *gin.Context) {
  * 1 手机号
  * 2 邮箱
  */
-func GetCaptcha(c *gin.Context) {
+func (a UserApi) GetCaptcha(c *gin.Context) {
+	a.MakeContext(c)
 
-	flag := a.Param("flag")
+	flag := a.QueryInt("flag")
+
 	captcha := utils.CreateCaptcha(6)
 	user := a.GetCurrentUser()
 
 	switch flag {
-	case "1":
+	case 1:
 		if a.EmptyFailed("请先绑定手机号！", user.PhoneNumber) {
 			return
 		}
 		log.Info("GetCaptcha", user.ID, "---"+user.UserName+"---"+"手机验证码:"+captcha)
-	case "2":
+	case 2:
 		if a.EmptyFailed("请先绑定邮箱！", user.Email) {
 			return
 		}
@@ -94,7 +118,7 @@ func GetCaptcha(c *gin.Context) {
 		break
 	}
 
-	cache.SetExpire(a.KeyUserId(blog_const.USER_CODE)+"_"+flag, captcha, time.Minute*5)
+	cache.SetExpire(a.KeyUserId(blog_const.USER_CODE)+"_"+utils.IntToString(flag), captcha, time.Minute*5)
 
 	a.OK()
 }
@@ -102,7 +126,8 @@ func GetCaptcha(c *gin.Context) {
 // GetCaptchaForBind
 // 绑定手机号或者邮箱
 // flag: 1 手机号 2 邮箱
-func GetCaptchaForBind(c *gin.Context) {
+func (a UserApi) GetCaptchaForBind(c *gin.Context) {
+	a.MakeContext(c)
 	//place := a.Param("place")
 	//flag := a.Param("flag")
 	var param blogVO.Param
@@ -133,7 +158,8 @@ func GetCaptchaForBind(c *gin.Context) {
 // 1 手机号
 // 2 邮箱
 // 3 密码：place=老密码&password=新密码
-func UpdateSecretInfo(c *gin.Context) {
+func (a UserApi) UpdateSecretInfo(c *gin.Context) {
+	a.MakeContext(c)
 	//place := a.Param("place")
 	//flag := a.Param("flag")
 	//captcha := a.Param("code")
@@ -154,17 +180,11 @@ func UpdateSecretInfo(c *gin.Context) {
 // 忘记密码 获取验证码
 // 1 手机号
 // 2 邮箱
-func GetCaptchaForForgetPassword(c *gin.Context) {
+func (a UserApi) GetCaptchaForForgetPassword(c *gin.Context) {
+	a.MakeContext(c)
 	place := a.Query("place")
 	flag := a.QueryInt("flag")
 	param := blogVO.Param{Place: place, Flag: flag}
-	//err := c.ShouldBindUri(&param)
-	//if err != nil {
-	//	print(err)
-	//}
-	//if a.BindFailed(&param) {
-	//	return
-	//}
 
 	captcha := utils.CreateCaptcha(6)
 
@@ -187,7 +207,8 @@ func GetCaptchaForForgetPassword(c *gin.Context) {
 // 忘记密码 更新密码
 // 1 手机号
 // 2 邮箱
-func UpdateForForgetPassword(c *gin.Context) {
+func (a UserApi) UpdateForForgetPassword(c *gin.Context) {
+	a.MakeContext(c)
 	place := a.Param("place")
 	flag := a.Param("flag")
 	captcha := a.Param("code")
@@ -202,7 +223,8 @@ func UpdateForForgetPassword(c *gin.Context) {
 	a.OK()
 }
 
-func GetUserByUsername(c *gin.Context) {
+func (a UserApi) GetUserByUsername(c *gin.Context) {
+	a.MakeContext(c)
 	userName := a.Param("username")
 	a.OK(db_user.ListByUserName(userName))
 }

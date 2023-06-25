@@ -12,7 +12,7 @@ DROP TABLE IF EXISTS `user`;
 
 CREATE TABLE `user` (
   `id` int NOT NULL AUTO_INCREMENT COMMENT 'id',
-  `username` varchar(32) DEFAULT NULL COMMENT '用户名',
+  `user_name` varchar(32) DEFAULT NULL COMMENT '用户名',
   `password` varchar(128) DEFAULT NULL COMMENT '密码',
   `phone_number` varchar(16) DEFAULT NULL COMMENT '手机号',
   `email` varchar(32) DEFAULT NULL COMMENT '用户邮箱',
@@ -30,7 +30,7 @@ CREATE TABLE `user` (
   `deleted` tinyint(1) NOT NULL DEFAULT 0 COMMENT '是否启用[0:未删除，1:已删除]',
 
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_username` (`username`)
+  UNIQUE KEY `uk_username` (`user_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户信息表';
 
 DROP TABLE IF EXISTS `article`;
@@ -287,10 +287,14 @@ CREATE TABLE `im_chat_user_group_message` (
 
 -- 第三步：执行初始化语句
 
-INSERT INTO `user` (`id`, `username`, `password`, `phone_number`, `email`, `user_status`, `gender`, `open_id`, `avatar`, `introduction`, `user_type`, `update_by`, `deleted`, `admire`) VALUES(1, 'Sara', '47bce5c74f589f4867dbd57e9ca9f808', '', '', 1, 1, '', '', '', 0, 'Sara', 0, '');
+INSERT INTO `user` (`id`, `user_name`, `password`, `phone_number`, `email`, `user_status`, `gender`, `open_id`, `avatar`, `introduction`, `user_type`, `update_by`, `admire`)
+VALUES(1, 'wan', 'a078b88157431887516448c823118d83', '', '', 1, 1, '', '', '', 0, 'Sara', '');
 
-INSERT INTO `web_info` (`id`, `web_name`, `web_title`, `notices`, `footer`, `background_image`, `avatar`, `random_avatar`, `random_name`, `random_cover`, `waifu_json`, `status`) VALUES(1, 'Sara', '寻国记', '[]', '云想衣裳花想容， 春风拂槛露华浓。', '', '', '[]', '[]', '[]', '{}', 1);
+INSERT INTO `web_info` (`id`, `web_name`, `web_title`, `notices`, `footer`, `background_image`, `avatar`, `random_avatar`, `random_name`, `random_cover`, `waifu_json`, `status`)
+VALUES(1, 'wan', '小世界', '[]', '多情自古空余恨，此恨绵绵无绝期。', '', '', '[]', '[]', '[]', '{}', 1);
 
-INSERT INTO `im_chat_group` (`id`, `group_name`, `master_user_id`, `introduction`, `notice`, `in_type`) VALUES(-1, '公共聊天室', 1, '公共聊天室', '欢迎光临！', 0);
+INSERT INTO `im_chat_group` (`id`, `group_name`, `master_user_id`, `introduction`, `notice`, `in_type`, `group_type`)
+VALUES(-1, '大众澡堂', 1, '大众澡堂', '欢迎光临！', 0, 1);
 
-INSERT INTO `im_chat_group_user` (`id`, `group_id`, `user_id`, `admin_flag`, `user_status`) VALUES(1, -1, 1, 1, 1);
+INSERT INTO `im_chat_group_user` (`id`, `group_id`, `user_id`, `admin_flag`, `user_status`)
+VALUES(1, -1, 1, 1, 1);

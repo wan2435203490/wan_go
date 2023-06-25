@@ -3,6 +3,7 @@ package cache
 //单机cache
 import (
 	"github.com/patrickmn/go-cache"
+	"github.com/timandy/routine"
 	"time"
 	"wan_go/pkg/common/config"
 	"wan_go/pkg/common/constant/blog_const"
@@ -12,8 +13,25 @@ import (
 
 var (
 	//默认过期时间为 30 分钟的缓存，每 1 小时清除一次过期key
-	cc = cache.New(30*time.Minute, 1*time.Hour)
+	cc    = cache.New(30*time.Minute, 1*time.Hour)
+	local = routine.NewThreadLocal()
 )
+
+func SetToken(token string) {
+	local.Set(token)
+}
+
+func RemoveToken() {
+	local.Remove()
+}
+
+func Token() string {
+	get := local.Get()
+	if get == nil {
+		return ""
+	}
+	return get.(string)
+}
 
 // Set default cache.DefaultExpiration
 func Set(key string, value any) {
@@ -22,7 +40,7 @@ func Set(key string, value any) {
 
 func SetExpire(key string, value any, d time.Duration) {
 	//第三个参数为该key过期时间，大于0时生效 default时取的new函数的第一个值
-	cc.Set(key, value, d)
+	cc.Set(key, value, cache.DefaultExpiration)
 }
 
 func Get(key string) (any, bool) {
@@ -31,6 +49,9 @@ func Get(key string) (any, bool) {
 
 func GetString(key string) (string, bool) {
 	get, b := cc.Get(key)
+	if get == nil {
+		return "", false
+	}
 	return get.(string), b
 }
 
@@ -52,10 +73,12 @@ func GetAdminUserId() int {
 	return -1
 }
 
-// GetUser todo unimplemented
+func SetUser(user *blog.User) {
+	Set(Token(), user)
+}
+
 func GetUser() *blog.User {
-	token := "Header(blog_const.TOKEN_HEADER)"
-	if get, b := Get(token); b {
+	if get, b := Get(Token()); b {
 		return get.(*blog.User)
 	}
 	return nil

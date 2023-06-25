@@ -6,6 +6,8 @@ import (
 	"github.com/qiniu/go-sdk/v7/auth/qbox"
 	"github.com/qiniu/go-sdk/v7/storage"
 	"mime/multipart"
+	"os"
+	"wan_go/pkg/common/config"
 )
 
 //https://developer.qiniu.com/kodo/1238/go
@@ -16,15 +18,54 @@ import (
 //4.业务服务器保存相关信息，并返回一些信息给七牛
 //5.七牛原封不动地将这些信息转发给客户端（终端用户）
 
-var (
-	AccessKey = "yourAccessKey" // 秘钥对
-	SerectKey = "yourSerectKey"
-	Bucket    = "yourBucket"              // 空间名称
-	ImgUrl    = "http://your.domain.com/" // 自定义域名或测试域名
-)
+func UploadToQiNiu(file *os.File) {
+	putPlicy := storage.PutPolicy{
+		Scope:   config.Config.Qiniu.Bucket,
+		Expires: 3600, //default could set config
+	}
+	mac := GetMac()
 
-// UploadToQiNiu 上传图片到七牛云，然后返回状态和图片的url
-func UploadToQiNiu(file *multipart.FileHeader) (int, string) {
+	// 获取上传凭证
+	upToken := putPlicy.UploadToken(mac)
+
+	// 配置参数
+	cfg := storage.Config{
+		//Zone:          &storage.ZoneHuanan, // 华南区
+		UseCdnDomains: false,
+		UseHTTPS:      false, // 非https
+	}
+	formUploader := storage.NewFormUploader(&cfg)
+
+	ret := storage.PutRet{}        // 上传后返回的结果
+	putExtra := storage.PutExtra{} // 额外参数
+
+	// 上传 自定义key，可以指定上传目录及文件名和后缀，
+	key := "test/" + file.Name() // 上传路径，如果当前目录中已存在相同文件，则返回上传失败错误
+	finfo, _ := os.Stat(file.Name())
+	err := formUploader.Put(context.Background(), &ret, upToken, key, file, finfo.Size(), &putExtra)
+
+	// 以默认key方式上传
+	// err = formUploader.PutWithoutKey(context.Background(), &ret, upToken, src, fileSize, &putExtra)
+
+	// 自定义key，上传指定路径的文件
+	// localFilePath = "./aa.jpg"
+	// err = formUploader.PutFile(context.Background(), &ret, upToken, key, localFilePath, &putExtra)
+
+	// 默认key，上传指定路径的文件
+	// localFilePath = "./aa.jpg"
+	// err = formUploader.PutFile(context.Background(), &ret, upToken, key, localFilePath, &putExtra)
+
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+
+	url := config.Config.Qiniu.Url + ret.Key // 返回上传后的文件访问路径
+
+	fmt.Println(url)
+}
+
+// UploadImgToQiNiu 上传图片到七牛云，然后返回状态和图片的url
+func UploadImgToQiNiu(file *multipart.FileHeader) (int, string) {
 
 	src, err := file.Open()
 	if err != nil {
@@ -33,10 +74,10 @@ func UploadToQiNiu(file *multipart.FileHeader) (int, string) {
 	defer src.Close()
 
 	putPlicy := storage.PutPolicy{
-		Scope:   Bucket,
+		Scope:   config.Config.Qiniu.Bucket,
 		Expires: 3600, //default could set config
 	}
-	mac := qbox.NewMac(AccessKey, SerectKey)
+	mac := qbox.NewMac(config.Config.Qiniu.AccessKey, config.Config.Qiniu.SecretKey)
 
 	// 获取上传凭证
 	upToken := putPlicy.UploadToken(mac)
@@ -72,16 +113,19 @@ func UploadToQiNiu(file *multipart.FileHeader) (int, string) {
 		return code, err.Error()
 	}
 
-	url := ImgUrl + ret.Key // 返回上传后的文件访问路径
+	url := config.Config.Qiniu.Url + ret.Key // 返回上传后的文件访问路径
 	return 0, url
 }
 
 func GetMac() *qbox.Mac {
-	return qbox.NewMac(AccessKey, SerectKey)
+	return qbox.NewMac(config.Config.Qiniu.AccessKey, config.Config.Qiniu.SecretKey)
 }
 
 func Scope(key string) string {
-	return fmt.Sprintf("%s:%s", Bucket, key)
+	if key == "" {
+		return config.Config.Qiniu.Bucket
+	}
+	return fmt.Sprintf("%s:%s", config.Config.Qiniu.Bucket, key)
 }
 
 func BucketManager() *storage.BucketManager {
@@ -100,6 +144,7 @@ func BucketManager() *storage.BucketManager {
 func GetQiniuToken(key string) string {
 	putPolicy := storage.PutPolicy{
 		Scope: Scope(key),
+		//Expires: 3600,//default
 		//七牛云回复格式
 		//ReturnBody: `{"key":"$(key)","hash":"$(etag)","fsize":$(fsize),"bucket":"$(bucket)","name":"$(x:name)"}`,
 		//上传到七牛云后需要回调服务器时需要callback
@@ -116,7 +161,7 @@ func GetQiniuToken(key string) string {
 
 func DeleteQiniuFile(field string) {
 
-	err := BucketManager().Delete(Bucket, field)
+	err := BucketManager().Delete(config.Config.Qiniu.Bucket, field)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -131,7 +176,7 @@ func BatchDelete(fields []string) {
 	//每个batch的操作数量不可以超过1000个，如果总数量超过1000，需要分批发送
 	deleteOps := make([]string, 0, len(fields))
 	for _, key := range fields {
-		deleteOps = append(deleteOps, storage.URIDelete(Bucket, key))
+		deleteOps = append(deleteOps, storage.URIDelete(config.Config.Qiniu.Bucket, key))
 	}
 
 	rets, err := BucketManager().Batch(deleteOps)
@@ -161,7 +206,7 @@ func BatchGetFiles(keys []string) map[string]map[string]string {
 	//每个batch的操作数量不可以超过1000个，如果总数量超过1000，需要分批发送
 	getOps := make([]string, 0, len(keys))
 	for _, key := range keys {
-		getOps = append(getOps, storage.URIStat(Bucket, key))
+		getOps = append(getOps, storage.URIStat(config.Config.Qiniu.Bucket, key))
 	}
 
 	rets, err := BucketManager().Batch(getOps)

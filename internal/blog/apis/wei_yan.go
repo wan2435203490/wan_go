@@ -1,7 +1,9 @@
-package blog
+package apis
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"wan_go/pkg/common/api"
 	"wan_go/pkg/common/cache"
 	"wan_go/pkg/common/constant/blog_const"
 	"wan_go/pkg/common/db/mysql/blog"
@@ -11,7 +13,12 @@ import (
 	blogVO "wan_go/pkg/vo/blog"
 )
 
-func SaveWeiYan(c *gin.Context) {
+type WeiYanApi struct {
+	api.Api
+}
+
+func (a WeiYanApi) SaveWeiYan(c *gin.Context) {
+	a.MakeContext(c)
 	var vo blog.WeiYan
 	if a.BindFailed(&vo) {
 		return
@@ -21,8 +28,13 @@ func SaveWeiYan(c *gin.Context) {
 		return
 	}
 
+	userId := cache.GetUserId()
+	if a.IsFailed(userId < 1, "用户登录信息失效，请重新登录！") {
+		return
+	}
+
 	weiYan := blog.WeiYan{
-		UserId:   int32(cache.GetUserId()),
+		UserId:   int32(userId),
 		Content:  vo.Content,
 		IsPublic: vo.IsPublic,
 		Type:     blog_const.WEIYAN_TYPE_FRIEND,
@@ -34,7 +46,8 @@ func SaveWeiYan(c *gin.Context) {
 	a.OK()
 }
 
-func SaveNews(c *gin.Context) {
+func (a WeiYanApi) SaveNews(c *gin.Context) {
+	a.MakeContext(c)
 	var vo blog.WeiYan
 	if a.BindFailed(&vo) {
 		return
@@ -63,7 +76,8 @@ func SaveNews(c *gin.Context) {
 	a.OK()
 }
 
-func DeleteWeiYan(c *gin.Context) {
+func (a WeiYanApi) DeleteWeiYan(c *gin.Context) {
+	a.MakeContext(c)
 	var id int
 	if a.IntFailed(&id, "id") {
 		return
@@ -71,9 +85,10 @@ func DeleteWeiYan(c *gin.Context) {
 	a.Done(db_wei_yan.DeleteByUserId(id))
 }
 
-func ListNews(c *gin.Context) {
+func (a WeiYanApi) ListNews(c *gin.Context) {
+	a.MakeContext(c)
 	var vo blogVO.BaseRequestVO[*blog.WeiYan]
-	if a.BindFailed(&vo) {
+	if a.BindPageFailed(&vo) {
 		return
 	}
 
@@ -86,13 +101,15 @@ func ListNews(c *gin.Context) {
 	a.OK(&vo)
 }
 
-func ListWeiYan(c *gin.Context) {
+func (a WeiYanApi) ListWeiYan(c *gin.Context) {
+	a.MakeContext(c)
 	var vo blogVO.BaseRequestVO[*blog.WeiYan]
-	if a.BindFailed(&vo) {
+	if a.BindPageFailed(&vo) {
 		return
 	}
 
 	db_wei_yan.ListWeiYan(&vo)
 
+	fmt.Println("qwqwq")
 	a.OK(&vo)
 }

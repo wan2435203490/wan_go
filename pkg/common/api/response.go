@@ -1,6 +1,7 @@
 package api
 
 import (
+	json2 "encoding/json"
 	"log"
 	"net/http"
 	"reflect"
@@ -15,8 +16,9 @@ func (a *Api) Done(err error) {
 }
 
 func (a *Api) DoneApiErr(apiErr *r.CodeMsg) {
-	if len(apiErr.Msg) == 0 {
+	if apiErr == nil || len(apiErr.Msg) == 0 {
 		a.OK()
+		return
 	}
 	a.ErrorInternal(apiErr.Msg)
 }
@@ -24,20 +26,25 @@ func (a *Api) DoneApiErr(apiErr *r.CodeMsg) {
 func (a *Api) OK(data ...any) {
 
 	//todo 校验errmsg
-	if data != nil {
-		val := reflect.ValueOf(data[0]).Elem()
-		errMsgValue := val.FieldByName("Msg")
-		if !errMsgValue.IsZero() {
+	if data != nil && data[0] != nil {
+		value := reflect.ValueOf(data[0])
+		if value.Kind() == reflect.Pointer || value.Kind() == reflect.Interface {
+			value = value.Elem()
+		}
+		if value.Kind() == reflect.Struct {
+			errMsgValue := value.FieldByName("Msg")
+			if errMsgValue.IsValid() && !errMsgValue.IsZero() {
 
-			codeValue := val.FieldByName("Code")
-			var code int
-			if codeValue.IsZero() {
-				code = 400
-			} else {
-				code = int(codeValue.Int())
+				codeValue := value.FieldByName("Code")
+				var code int
+				if codeValue.IsZero() {
+					code = 400
+				} else {
+					code = int(codeValue.Int())
+				}
+				a.Error(code, errMsgValue.String())
+				return
 			}
-			a.Error(code, errMsgValue.String())
-			return
 		}
 	}
 
@@ -50,7 +57,9 @@ func (a *Api) OK(data ...any) {
 	}
 
 	a.Context.JSON(http.StatusOK, res)
-	log.Printf("%#v\n", data)
+	//log.Println(a.Context.Request.URL, &a.Context, &res, "\n")
+	rr, _ := json2.Marshal(res)
+	log.Println(a.Context.Request.URL, ":", string(rr), "\n")
 }
 func (a *Api) CodeError(msg r.CodeMsg) {
 	a.Error(msg.Code, msg.Msg)

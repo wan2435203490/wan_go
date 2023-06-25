@@ -17,22 +17,3 @@ func List() ([]*blog.WebInfo, error) {
 	}
 	return webInfoes, nil
 }
-
-//
-//func GetOrInsertUser(db_user *blog.User) error {
-//
-//	err := db.MySQL.First(&db_user, "username=?", db_user.UserName).Error
-//
-//	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
-//		//第一次进来 用户不存在 自动插入
-//		db_user.Timestamp = time.Now()
-//		db_user.Id = strings.ReplaceAll(uuid.NewString(), "-", "")
-//		err = db.MySQL.Create(&db_user).Error
-//	}
-//
-//	if err != nil {
-//		return err
-//	}
-//
-//	return nil
-//}

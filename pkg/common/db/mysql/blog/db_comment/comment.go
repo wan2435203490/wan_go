@@ -162,8 +162,8 @@ func ListComment(vo *blogVO.BaseRequestVO[*blogVO.CommentVO]) {
 
 	if vo.FloorCommentId == 0 {
 		var comments []*blog.Comment
-		if db.Page(&vo.Pagination).Where("source=? and type=? and parent_comment_id=?", vo.Source, vo.CommentType, blog_const.FIRST_COMMENT).
-			Order("CreatedAt").
+		if db.Page(&vo.Pagination).Debug().Where("source=? and type=? and parent_comment_id=?", vo.Source, vo.CommentType, blog_const.FIRST_COMMENT).
+			Order("created_at").
 			Find(&comments).Error != nil || len(comments) == 0 {
 			return
 		}
@@ -173,9 +173,9 @@ func ListComment(vo *blogVO.BaseRequestVO[*blogVO.CommentVO]) {
 			var childComments []*blog.Comment
 			vo2 := blogVO.BaseRequestVO[*blogVO.CommentVO]{}
 			vo2.Current, vo2.Size = 1, 5
-			db.Page(&vo2.Pagination).
+			db.Page(&vo2.Pagination).Debug().
 				Where("source=? and type=? and floor_comment_id=?", vo.Source, vo.CommentType, c.ID).
-				Order("CreatedAt").
+				Order("created_at").
 				Find(&childComments)
 
 			if len(childComments) > 0 {
@@ -186,16 +186,16 @@ func ListComment(vo *blogVO.BaseRequestVO[*blogVO.CommentVO]) {
 				vo2.Records = ccVOs
 			}
 			//todo child 实现Pagination[T] 将Records放到Pagination里
-			//commentVO.ChildComments = vo2
+			commentVO.ChildComments = vo2
 			commentVOs = append(commentVOs, commentVO)
 		}
 		vo.SetRecords(&commentVOs)
 
 	} else {
 		var childComments []*blog.Comment
-		if db.Page(&vo.Pagination).
+		if db.Page(&vo.Pagination).Debug().
 			Where("source=? and type=? and floor_comment_id=?", vo.Source, vo.CommentType, vo.FloorCommentId).
-			Order("CreatedAt").
+			Order("created_at").
 			Find(&childComments).Error != nil {
 			return
 		}
@@ -235,7 +235,7 @@ func ListAdminComment(vo *blogVO.BaseRequestVO[*blog.Comment], isBoss bool) {
 		}
 	}
 
-	tx.Order("CreatedAt DESC").Find(&comments)
+	tx.Order("created_at DESC").Find(&comments)
 
 	vo.SetRecords(&comments)
 }

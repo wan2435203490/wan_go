@@ -28,7 +28,7 @@ func DeleteById(id int) {
 
 func ListFamily(vo *blogVO.BaseRequestVO[*blog.Family]) {
 	db.Page(&vo.Pagination).Where("status=?", vo.Status).
-		Order("CreatedAt DESC").Find(&vo.Records)
+		Order("created_at DESC").Find(&vo.Records)
 }
 
 func ChangeLoveStatus(id int, status bool) {

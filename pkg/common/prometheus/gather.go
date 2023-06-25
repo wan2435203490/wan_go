@@ -48,7 +48,7 @@ var (
 	MsgOnlinePushSuccessCounter  prometheus.Counter
 	MsgOfflinePushSuccessCounter prometheus.Counter
 	MsgOfflinePushFailedCounter  prometheus.Counter
-	// api
+	// apis
 	ApiRequestCounter        prometheus.Counter
 	ApiRequestSuccessCounter prometheus.Counter
 	ApiRequestFailedCounter  prometheus.Counter
@@ -124,7 +124,7 @@ func NewApiRequestCounter() {
 	}
 	ApiRequestCounter = promauto.NewCounter(prometheus.CounterOpts{
 		Name: "api_request",
-		Help: "The number of api request",
+		Help: "The number of apis request",
 	})
 }
 
@@ -134,7 +134,7 @@ func NewApiRequestSuccessCounter() {
 	}
 	ApiRequestSuccessCounter = promauto.NewCounter(prometheus.CounterOpts{
 		Name: "api_request_success",
-		Help: "The number of api request success",
+		Help: "The number of apis request success",
 	})
 }
 
@@ -144,7 +144,7 @@ func NewApiRequestFailedCounter() {
 	}
 	ApiRequestFailedCounter = promauto.NewCounter(prometheus.CounterOpts{
 		Name: "api_request_failed",
-		Help: "The number of api request failed",
+		Help: "The number of apis request failed",
 	})
 }
 
@@ -154,7 +154,7 @@ func NewGrpcRequestCounter() {
 	}
 	GrpcRequestCounter = promauto.NewCounter(prometheus.CounterOpts{
 		Name: "grpc_request",
-		Help: "The number of api request",
+		Help: "The number of apis request",
 	})
 }
 

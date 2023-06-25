@@ -1,7 +1,8 @@
-package blog
+package apis
 
 import (
 	"github.com/gin-gonic/gin"
+	"wan_go/pkg/common/api"
 	"wan_go/pkg/common/cache"
 	"wan_go/pkg/common/constant/blog_const"
 	"wan_go/pkg/common/db/mysql/blog"
@@ -15,9 +16,15 @@ import (
 	blogVO "wan_go/pkg/vo/blog"
 )
 
-func ListUser(c *gin.Context) {
+type AdminApi struct {
+	api.Api
+}
+
+func (a AdminApi) ListUser(c *gin.Context) {
+	a.MakeContext(c)
+
 	var vo blogVO.BaseRequestVO[*blog.User]
-	if a.BindFailed(&vo) {
+	if a.BindPageFailed(&vo) {
 		return
 	}
 
@@ -30,7 +37,8 @@ func ListUser(c *gin.Context) {
 // 修改用户状态
 // flag = true：解禁
 // flag = false：封禁
-func ChangeUserStatus(c *gin.Context) {
+func (a AdminApi) ChangeUserStatus(c *gin.Context) {
+	a.MakeContext(c)
 
 	var userId int
 	if a.IntFailed(&userId, "userId") {
@@ -62,7 +70,8 @@ func deleteTokenCache(key string) {
 }
 
 // ChangeUserAdmire 修改用户赞赏
-func ChangeUserAdmire(c *gin.Context) {
+func (a AdminApi) ChangeUserAdmire(c *gin.Context) {
+	a.MakeContext(c)
 	var userId int
 	if a.IntFailed(&userId, "userId") {
 		return
@@ -78,7 +87,8 @@ func ChangeUserAdmire(c *gin.Context) {
 }
 
 // ChangeUserType 修改用户类型
-func ChangeUserType(c *gin.Context) {
+func (a AdminApi) ChangeUserType(c *gin.Context) {
+	a.MakeContext(c)
 	var userId int
 	if a.IntFailed(&userId, "userId") {
 		return
@@ -101,7 +111,8 @@ func ChangeUserType(c *gin.Context) {
 }
 
 // GetAdminWebInfo 获取网站信息
-func GetAdminWebInfo(c *gin.Context) {
+func (a AdminApi) GetAdminWebInfo(c *gin.Context) {
+	a.MakeContext(c)
 	list, err := db_web_info.List()
 	if err != nil {
 		a.ErrorInternal(err.Error())
@@ -112,9 +123,10 @@ func GetAdminWebInfo(c *gin.Context) {
 }
 
 // ListUserArticle 用户查询文章
-func ListUserArticle(c *gin.Context) {
+func (a AdminApi) ListUserArticle(c *gin.Context) {
+	a.MakeContext(c)
 	var vo blogVO.BaseRequestVO[*blogVO.ArticleVO]
-	if a.BindFailed(&vo) {
+	if a.BindPageFailed(&vo) {
 		return
 	}
 
@@ -124,9 +136,10 @@ func ListUserArticle(c *gin.Context) {
 }
 
 // ListBossArticle Boss查询文章
-func ListBossArticle(c *gin.Context) {
+func (a AdminApi) ListBossArticle(c *gin.Context) {
+	a.MakeContext(c)
 	var vo blogVO.BaseRequestVO[*blogVO.ArticleVO]
-	if a.BindFailed(&vo) {
+	if a.BindPageFailed(&vo) {
 		return
 	}
 
@@ -136,7 +149,8 @@ func ListBossArticle(c *gin.Context) {
 }
 
 // ChangeArticleStatus Boss查询文章
-func ChangeArticleStatus(c *gin.Context) {
+func (a AdminApi) ChangeArticleStatus(c *gin.Context) {
+	a.MakeContext(c)
 	var articleId int
 	if a.IntFailed(&articleId, "articleId") {
 		return
@@ -153,7 +167,8 @@ func ChangeArticleStatus(c *gin.Context) {
 }
 
 // GetArticleByIdForUser 查询文章
-func GetArticleByIdForUser(c *gin.Context) {
+func (a AdminApi) GetArticleByIdForUser(c *gin.Context) {
+	a.MakeContext(c)
 	var id int
 	if a.IntFailed(&id, "id") {
 		return
@@ -162,7 +177,8 @@ func GetArticleByIdForUser(c *gin.Context) {
 }
 
 // UserDeleteComment 作者删除评论
-func UserDeleteComment(c *gin.Context) {
+func (a AdminApi) UserDeleteComment(c *gin.Context) {
+	a.MakeContext(c)
 	var id int
 	if a.IntFailed(&id, "id") {
 		return
@@ -171,7 +187,8 @@ func UserDeleteComment(c *gin.Context) {
 }
 
 // BossDeleteComment Boss删除评论
-func BossDeleteComment(c *gin.Context) {
+func (a AdminApi) BossDeleteComment(c *gin.Context) {
+	a.MakeContext(c)
 	var id int
 	if a.IntFailed(&id, "id") {
 		return
@@ -181,9 +198,10 @@ func BossDeleteComment(c *gin.Context) {
 }
 
 // ListUserComment 用户查询评论
-func ListUserComment(c *gin.Context) {
+func (a AdminApi) ListUserComment(c *gin.Context) {
+	a.MakeContext(c)
 	var vo blogVO.BaseRequestVO[*blog.Comment]
-	if a.BindFailed(&vo) {
+	if a.BindPageFailed(&vo) {
 		return
 	}
 
@@ -193,9 +211,10 @@ func ListUserComment(c *gin.Context) {
 }
 
 // ListBossComment Boss查询评论
-func ListBossComment(c *gin.Context) {
+func (a AdminApi) ListBossComment(c *gin.Context) {
+	a.MakeContext(c)
 	var vo blogVO.BaseRequestVO[*blog.Comment]
-	if a.BindFailed(&vo) {
+	if a.BindPageFailed(&vo) {
 		return
 	}
 
@@ -205,9 +224,10 @@ func ListBossComment(c *gin.Context) {
 }
 
 // ListBossTreeHole Boss查询树洞
-func ListBossTreeHole(c *gin.Context) {
+func (a AdminApi) ListBossTreeHole(c *gin.Context) {
+	a.MakeContext(c)
 	var vo blogVO.BaseRequestVO[*blog.TreeHole]
-	if a.BindFailed(&vo) {
+	if a.BindPageFailed(&vo) {
 		return
 	}
 

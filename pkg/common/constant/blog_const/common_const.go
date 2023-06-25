@@ -12,7 +12,7 @@ var (
 	ADMIN_ACCESS_TOKEN   = "admin_access_token_"
 	TOKEN_HEADER         = "Authorization"
 	TOKEN_EXPIRE         = time.Hour * 24
-	TOKEN_INTERVAL       = 3600
+	TOKEN_INTERVAL       = time.Hour
 	ADMIN                = "admin"
 	ADMIN_FAMILY         = "adminFamily"
 	FAMILY_LIST          = "familyList"
@@ -44,11 +44,6 @@ var (
 	 * 赞赏
 	 */
 	ADMIRE = "admire"
-
-	/**
-	 * 密钥
-	 */
-	CRYPOTJS_KEY = "aoligeimeimaobin"
 
 	/**
 	 * 根据用户ID获取用户信息
@@ -89,14 +84,6 @@ var (
 	 * 留言的源
 	 */
 	TREE_HOLE_COMMENT_SOURCE = 0
-
-	/**
-	 * 七牛云
-	 */
-	ACCESS_KEY   = "$$$$七牛云密钥"
-	SECRET_KEY   = "$$$$七牛云密钥"
-	BUCKET       = "$$$$七牛云BUCKET"
-	DOWNLOAD_URL = "$$$$七牛云访问域名"
 
 	/**
 	 * 资源类型

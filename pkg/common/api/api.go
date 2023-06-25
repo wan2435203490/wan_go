@@ -50,7 +50,7 @@ func (a *Api) IsError(err error) bool {
 //}
 
 // MakeContext 设置http上下文
-func (a *Api) MakeContext(c *gin.Context) error {
+func (a *Api) MakeContext(c *gin.Context) {
 	a.Context = c
 	//a.Logger = GetRequestLogger(c)
 
@@ -59,7 +59,7 @@ func (a *Api) MakeContext(c *gin.Context) error {
 	//	return err
 	//}
 
-	return nil
+	//return nil
 }
 
 // MakeOrm 设置Orm DB
@@ -92,7 +92,11 @@ func (a *Api) GetRequest() *http.Request {
 }
 
 func (a *Api) GetToken() string {
-	return a.GetRequest().Header[blog_const.TOKEN_HEADER][0]
+	strings := a.GetRequest().Header[blog_const.TOKEN_HEADER]
+	if len(strings) == 0 {
+		return ""
+	}
+	return strings[0]
 }
 
 func (a *Api) GetCurrentUser() *blog.User {

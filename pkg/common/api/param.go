@@ -22,7 +22,7 @@ func (a *Api) Param(key string) (value string) {
 
 	value = a.Context.Param(key)
 	if value == "" {
-		a.Context.AbortWithStatusJSON(http.StatusBadRequest, key+" is empty")
+		a.Error(http.StatusBadRequest, key+" is empty")
 	}
 
 	return
@@ -30,24 +30,36 @@ func (a *Api) Param(key string) (value string) {
 
 func (a *Api) StringFailed(parseStr *string, key string) (failed bool) {
 
-	*parseStr = a.Context.Param(key)
-	if *parseStr == "" {
-		a.Context.AbortWithStatusJSON(http.StatusBadRequest, key+" is empty")
-		failed = true
+	value := a.Context.Query(key)
+	if value == "" {
+		value = a.Context.Param(key)
+		if value == "" {
+			a.Error(http.StatusBadRequest, key+" is empty")
+			failed = true
+			return
+		}
 	}
 
+	*parseStr = value
 	return
 }
 
 func (a *Api) BoolFailed(parseBool *bool, key string) (failed bool) {
 
-	value := a.Context.Param(key)
+	value := a.Context.Query(key)
+	if value == "" {
+		value = a.Context.Param(key)
+
+		if value == "" {
+			a.Error(http.StatusBadRequest, key+" is empty")
+			failed = true
+			return
+		}
+	}
 
 	aBool, err := strconv.ParseBool(value)
-
-	if value == "" || err != nil {
-		a.Context.AbortWithStatusJSON(http.StatusBadRequest, key+" is empty")
-		failed = true
+	if err != nil {
+		a.Error(http.StatusBadRequest, err.Error())
 	}
 
 	*parseBool = aBool
@@ -57,16 +69,23 @@ func (a *Api) BoolFailed(parseBool *bool, key string) (failed bool) {
 
 func (a *Api) IntFailed(parseInt *int, key string) (failed bool) {
 
-	value := a.Context.Param(key)
-
+	value := a.Context.Query(key)
 	if value == "" {
-		a.Context.AbortWithStatusJSON(http.StatusBadRequest, key+" is empty")
-		failed = true
+		value = a.Context.Param(key)
+		if value == "" {
+			a.Error(http.StatusBadRequest, key+" is empty")
+			failed = true
+			return
+		}
 	}
 
 	*parseInt = utils.StringToInt(value)
 
 	return
+}
+
+func (a *Api) BindPageFailed(d interface{}) bool {
+	return a.BindFailed(d, binding.Form)
 }
 
 // BindFailed validate && write error json response if error

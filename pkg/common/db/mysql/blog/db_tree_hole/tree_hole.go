@@ -54,7 +54,7 @@ func ListBossTreeHole(vo *blogVO.BaseRequestVO[*blog.TreeHole]) {
 
 	var comments []*blog.TreeHole
 
-	db.Page(&vo.Pagination).Order("CreatedAt DESC").Find(&comments)
+	db.Page(&vo.Pagination).Order("created_at DESC").Find(&comments)
 
 	vo.SetRecords(&comments)
 }

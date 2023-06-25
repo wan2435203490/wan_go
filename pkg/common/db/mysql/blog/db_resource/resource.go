@@ -2,6 +2,7 @@ package db_resource
 
 import (
 	"wan_go/pkg/common/cache"
+	"wan_go/pkg/common/config"
 	"wan_go/pkg/common/constant/blog_const"
 	"wan_go/pkg/common/db"
 	"wan_go/pkg/common/db/mysql/blog"
@@ -29,7 +30,7 @@ func DeleteByUserId(id int) error {
 func GetResourceInfo() *[]*blog.Resource {
 	var resources []*blog.Resource
 	db.Mysql().Select("id, path").
-		Where("path like ? and size is null", "%"+blog_const.DOWNLOAD_URL+"%").
+		Where("path like ? and size is null", "%"+config.Config.Qiniu.Url+"%").
 		Find(&resources)
 
 	return &resources
@@ -59,7 +60,7 @@ func GetImageList() *[]*blog.Resource {
 	var resources []*blog.Resource
 	db.Mysql().Where("type=? and status=? and user_id=?",
 		blog_const.PATH_TYPE_INTERNET_MEME, blog_const.STATUS_ENABLE.Code, cache.GetAdminUserId()).
-		Order("CreatedAt DESC").Find(&resources)
+		Order("created_at DESC").Find(&resources)
 	return &resources
 }
 
@@ -71,7 +72,7 @@ func ListResource(vo *blogVO.BaseRequestVO[*blog.Resource]) {
 		tx.Where("type=?", vo.ResourceType)
 	}
 
-	tx.Order("CreatedAt DESC").Find(&vo.Records)
+	tx.Order("created_at DESC").Find(&vo.Records)
 }
 
 func ChangeResourceStatus(id int, status bool) {

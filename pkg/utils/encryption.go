@@ -5,8 +5,11 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/md5"
+	"crypto/sha256"
+	"encoding/base64"
 	"encoding/hex"
-	"errors"
+	"fmt"
+	"wan_go/pkg/common/config"
 )
 
 func Md5(s string, salt ...string) string {
@@ -19,65 +22,143 @@ func Md5(s string, salt ...string) string {
 	return hex.EncodeToString(cipher)
 }
 
-func AesEncrypt(data []byte, key []byte) ([]byte, error) {
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		return nil, err
-	}
-	blockSize := block.BlockSize()
-	encryptBytes := pkcs7Padding(data, blockSize)
-	crypted := make([]byte, len(encryptBytes))
-	blockMode := cipher.NewCBCEncrypter(block, key[:blockSize])
-	blockMode.CryptBlocks(crypted, encryptBytes)
-	return crypted, nil
+func AesDecryptCrypotJsKey(data string) string {
+	return AesCBCDecrypt(data, config.Config.Blog.CrypotJSKey, GenIVFromKey(config.Config.Blog.CrypotJSKey), PKCS7)
 }
 
-func AesDecrypt(data []byte, key []byte) ([]byte, error) {
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		return nil, err
-	}
-	blockSize := block.BlockSize()
-	blockMode := cipher.NewCBCDecrypter(block, key[:blockSize])
-	crypted := make([]byte, len(data))
-	blockMode.CryptBlocks(crypted, data)
-	crypted, err = pkcs7UnPadding(crypted)
-	if err != nil {
-		return nil, err
-	}
-	return crypted, nil
+func AesEncryptCrypotJsKey(data string) string {
+	return AesCBCEncrypt(data, config.Config.Blog.CrypotJSKey, GenIVFromKey(config.Config.Blog.CrypotJSKey), PKCS7)
 }
 
-func AesDecryptByString(data0, key0 string) (string, error) {
-
-	data, key := []byte(data0), []byte(key0)
-
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		return "", err
-	}
-	blockSize := block.BlockSize()
-	blockMode := cipher.NewCBCDecrypter(block, key[:blockSize])
-	crypted := make([]byte, len(data))
-	blockMode.CryptBlocks(crypted, data)
-	crypted, err = pkcs7UnPadding(crypted)
-	if err != nil {
-		return "", err
-	}
-	return string(crypted), nil
+func AesEncrypt(data, key string) string {
+	key = trimByMaxKeySize(key)
+	keyBytes := ZerosPadding([]byte(key), aes.BlockSize)
+	return AesCBCEncrypt(data, string(keyBytes), GenIVFromKey(key), PKCS7)
 }
 
-func pkcs7Padding(data []byte, blockSize int) []byte {
-	padding := blockSize - len(data)%blockSize
-	padText := bytes.Repeat([]byte{byte(padding)}, padding)
-	return append(data, padText...)
+func AesCBCEncrypt(data, key, iv string, paddingMode PaddingMode) string {
+	block, err := aes.NewCipher([]byte(key))
+	if err != nil {
+		return ""
+	}
+
+	src := Padding(paddingMode, []byte(data), block.BlockSize())
+	encryptData := make([]byte, len(src))
+	mode := cipher.NewCBCEncrypter(block, []byte(iv))
+	mode.CryptBlocks(encryptData, src)
+	return base64.StdEncoding.EncodeToString(encryptData)
 }
 
-func pkcs7UnPadding(data []byte) ([]byte, error) {
-	length := len(data)
+func AesDecrypt(data, key string) string {
+	key = trimByMaxKeySize(key)
+	keyBytes := ZerosPadding([]byte(key), aes.BlockSize)
+	return AesCBCDecrypt(data, string(keyBytes), GenIVFromKey(key), PKCS7)
+}
+
+// AesCBCDecrypt decrypts data with key and iv using AES algorithm.
+func AesCBCDecrypt(data, key, iv string, paddingMode PaddingMode) string {
+	block, err := aes.NewCipher([]byte(key))
+	if err != nil {
+		return ""
+	}
+
+	decodeData, _ := base64.StdEncoding.DecodeString(data)
+	decryptData := make([]byte, len(decodeData))
+	mode := cipher.NewCBCDecrypter(block, []byte(iv))
+	mode.CryptBlocks(decryptData, decodeData)
+
+	original, _ := UnPadding(paddingMode, decryptData)
+	return string(original)
+}
+
+// GenIVFromKey generates IV from key.
+func GenIVFromKey(key string) (iv string) {
+	hashedKey := sha256.Sum256([]byte(key))
+	return trimByBlockSize(hex.EncodeToString(hashedKey[:]))
+}
+
+func trimByBlockSize(key string) string {
+	if len(key) > aes.BlockSize {
+		return key[:aes.BlockSize]
+	}
+	return key
+}
+
+func trimByMaxKeySize(key string) string {
+	if len(key) > 32 {
+		return key[:32]
+	}
+	return key
+}
+
+type PaddingMode string
+
+const PKCS5 PaddingMode = "PKCS5"
+const PKCS7 PaddingMode = "PKCS7"
+const ZEROS PaddingMode = "ZEROS"
+
+func Padding(padding PaddingMode, src []byte, blockSize int) []byte {
+	switch padding {
+	case PKCS5:
+		src = PKCS5Padding(src, blockSize)
+	case PKCS7:
+		src = PKCS7Padding(src, blockSize)
+	case ZEROS:
+		src = ZerosPadding(src, blockSize)
+	}
+	return src
+}
+
+func UnPadding(padding PaddingMode, src []byte) ([]byte, error) {
+	switch padding {
+	case PKCS5:
+		return PKCS5UnPadding(src)
+	case PKCS7:
+		return PKCS7UnPadding(src)
+	case ZEROS:
+		return ZerosUnPadding(src)
+	}
+	return src, nil
+}
+
+func PKCS5Padding(src []byte, blockSize int) []byte {
+	return PKCS7Padding(src, blockSize)
+}
+
+func PKCS5UnPadding(src []byte) ([]byte, error) {
+	return PKCS7UnPadding(src)
+}
+
+func PKCS7Padding(src []byte, blockSize int) []byte {
+	padding := blockSize - len(src)%blockSize
+	padtext := bytes.Repeat([]byte{byte(padding)}, padding)
+	return append(src, padtext...)
+}
+
+func PKCS7UnPadding(src []byte) ([]byte, error) {
+	length := len(src)
 	if length == 0 {
-		return nil, errors.New("encrypt error")
+		return src, fmt.Errorf("src length is 0")
 	}
-	unPadding := int(data[length-1])
-	return data[:(length - unPadding)], nil
+	unpadding := int(src[length-1])
+	if length < unpadding {
+		return src, fmt.Errorf("src length is less than unpadding")
+	}
+	return src[:(length - unpadding)], nil
+}
+
+func ZerosPadding(src []byte, blockSize int) []byte {
+	rem := len(src) % blockSize
+	if rem == 0 {
+		return src
+	}
+	return append(src, bytes.Repeat([]byte{0}, blockSize-rem)...)
+}
+
+func ZerosUnPadding(src []byte) ([]byte, error) {
+	for i := len(src) - 1; ; i-- {
+		if src[i] != 0 {
+			return src[:i+1], nil
+		}
+	}
 }

@@ -199,7 +199,7 @@ func ListAdminArticle(vo *blogVO.BaseRequestVO[*blogVO.ArticleVO], isBoss bool) 
 		tx.Where("sort_id=?", vo.SortId)
 	}
 	var articles []*blog.Article
-	if err := tx.Find(&articles).Order("createdAt desc").Error; err != nil {
+	if err := tx.Debug().Model(blog.Article{}).Order("created_at desc").Find(&articles).Error; err != nil {
 		vo.Msg = err.Error()
 		return
 	}
@@ -265,10 +265,10 @@ func buildArticleVO(article *blog.Article, isAdmin bool) *blogVO.ArticleVO {
 	}
 
 	get, b := cache.Get(blog_const.SORT_INFO)
-	sortInfo := get.(*[]*blog.Sort)
-	if !b || sortInfo == nil {
+	if !b || get == nil {
 		return &vo
 	}
+	sortInfo := get.(*[]*blog.Sort)
 
 	for _, si := range *sortInfo {
 		if si.ID == vo.SortId {

@@ -5,24 +5,24 @@ import (
 )
 
 type BaseRequestVO[T any] struct {
-	r.Pagination
-	r.CodeMsg
-	Records        []T    `json:"records,omitempty"`
-	Order          string `json:"order,omitempty"`
-	Source         int32  `json:"source,omitempty"`
-	CommentType    string `json:"commentType,omitempty"`
-	FloorCommentId int    `json:"floorCommentId,omitempty"`
-	SearchKey      string `json:"searchKey,omitempty"`
+	r.Pagination   `json:",inline"`
+	r.CodeMsg      `json:"-"`
+	Records        []T    `json:"records" form:"records"`
+	Order          string `json:"order" form:"order"`
+	Source         int32  `json:"source" form:"source"`
+	CommentType    string `json:"commentType" form:"commentType"`
+	FloorCommentId int    `json:"floorCommentId" form:"floorCommentId"`
+	SearchKey      string `json:"searchKey" form:"searchKey"`
 	// 是否推荐[0:否，1:是]
-	RecommendStatus bool   `json:"recommendStatus,omitempty"`
-	SortId          int32  `json:"sortId,omitempty"`
-	LabelId         int32  `json:"labelId,omitempty"`
-	UserStatus      bool   `json:"userStatus,omitempty"`
-	UserType        int    `json:"userType,omitempty"`
-	UserId          int32  `json:"userId,omitempty"`
-	ResourceType    string `json:"resourceType,omitempty"`
-	Status          bool   `json:"status,omitempty"`
-	Classify        string `json:"classify,omitempty"`
+	RecommendStatus bool   `json:"recommendStatus" form:"recommendStatus"`
+	SortId          int32  `json:"sortId" form:"sortId"`
+	LabelId         int32  `json:"labelId" form:"labelId"`
+	UserStatus      bool   `json:"userStatus" form:"userStatus"`
+	UserType        int    `json:"userType" form:"userType"`
+	UserId          int32  `json:"userId" form:"userId"`
+	ResourceType    string `json:"resourceType" form:"resourceType"`
+	Status          bool   `json:"status" form:"status"`
+	Classify        string `json:"classify" form:"classify"`
 }
 
 func (vo *BaseRequestVO[T]) SetRecords(Records *[]T) {

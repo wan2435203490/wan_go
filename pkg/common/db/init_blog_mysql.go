@@ -2,6 +2,7 @@ package db
 
 import (
 	"fmt"
+	"gorm.io/gorm/schema"
 	"time"
 	"wan_go/pkg/common/config"
 	"wan_go/pkg/common/db/mysql/blog"
@@ -25,14 +26,6 @@ func InitMysql(DB *DataBases) {
 		config.Config.Mysql.Password,
 		config.Config.Mysql.Address[0],
 		"mysql")
-
-	fmt.Println()
-	fmt.Println()
-	fmt.Println()
-	fmt.Println(dsn)
-	fmt.Println()
-	fmt.Println()
-	fmt.Println()
 
 	var db *gorm.DB
 	var err1 error
@@ -67,6 +60,9 @@ func InitMysql(DB *DataBases) {
 
 	db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
 		Logger: newLogger,
+		NamingStrategy: schema.NamingStrategy{
+			SingularTable: true, // 使用单数表名
+		},
 	})
 	if err != nil {
 		panic(err.Error() + " Open failed " + dsn)
