@@ -1,4 +1,4 @@
-package blog
+package vo
 
 import (
 	"time"
@@ -17,7 +17,7 @@ type UserVO struct {
 	Gender       int8      `json:"gender"`
 	Avatar       string    `json:"avatar"`
 	Introduction string    `json:"introduction"`
-	CreatedAt    time.Time `json:"createTime"`
+	CreatedAt    time.Time `json:"createdAt"`
 	UpdatedAt    time.Time `json:"updateTime"`
 	UpdateBy     string    `json:"updateBy"`
 	IsBoss       bool      `json:"isBoss"`

@@ -123,7 +123,11 @@ func CopyStructFields(a interface{}, b interface{}, fields ...string) (err error
 	return copier.Copy(a, b)
 }
 
-func Wrap(err error, message string) error {
+func Wrap(err error) error {
+	return errors.Wrap(err, "==> "+printCallerNameAndLine())
+}
+
+func WrapMsg(err error, message string) error {
 	return errors.Wrap(err, "==> "+printCallerNameAndLine()+message)
 }
 

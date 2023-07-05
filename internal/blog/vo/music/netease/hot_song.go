@@ -1,6 +1,6 @@
 package netease
 
-import "wan_go/internal/vo/blog/music"
+import "wan_go/internal/blog/vo/music"
 
 type HotSong struct {
 	Code int         `json:"code"`

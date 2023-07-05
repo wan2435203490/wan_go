@@ -2,13 +2,13 @@ package actions
 
 import (
 	"errors"
+	log "wan_go/core/logger"
+	"wan_go/pkg/common/config"
+	"wan_go/sdk/pkg"
+	"wan_go/sdk/pkg/jwtauth/user"
+	"wan_go/sdk/pkg/response"
 
 	"github.com/gin-gonic/gin"
-	log "github.com/go-admin-team/go-admin-core/logger"
-	"github.com/go-admin-team/go-admin-core/sdk/config"
-	"github.com/go-admin-team/go-admin-core/sdk/pkg"
-	"github.com/go-admin-team/go-admin-core/sdk/pkg/jwtauth/user"
-	"github.com/go-admin-team/go-admin-core/sdk/pkg/response"
 	"gorm.io/gorm"
 )
 
@@ -47,6 +47,7 @@ func newDataPermission(tx *gorm.DB, userId interface{}) (*DataPermission, error)
 	var err error
 	p := &DataPermission{}
 
+	//todo permission
 	err = tx.Table("sys_user").
 		Select("sys_user.user_id", "sys_role.role_id", "sys_user.dept_id", "sys_role.data_scope").
 		Joins("left join sys_role on sys_role.role_id = sys_user.role_id").
@@ -61,7 +62,7 @@ func newDataPermission(tx *gorm.DB, userId interface{}) (*DataPermission, error)
 
 func Permission(tableName string, p *DataPermission) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
-		if !config.ApplicationConfig.EnableDP {
+		if !config.Config.Application.EnableDP {
 			return db
 		}
 		switch p.DataScope {
@@ -90,6 +91,7 @@ func getPermissionFromContext(c *gin.Context) *DataPermission {
 	return p
 }
 
+// todo emmmm... but actions.permission.go need impl
 // GetPermissionFromContext 提供非action写法数据范围约束
 func GetPermissionFromContext(c *gin.Context) *DataPermission {
 	return getPermissionFromContext(c)

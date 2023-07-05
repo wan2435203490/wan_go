@@ -1,4 +1,4 @@
-package blog
+package vo
 
 import (
 	"time"
@@ -22,7 +22,7 @@ type FamilyVO struct {
 	FamilyInfo     string `json:"familyInfo"`
 	//点赞数
 	LikeCount int32     `json:"likeCount"`
-	CreatedAt time.Time `json:"createTime"`
+	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updateTime"`
 }
 

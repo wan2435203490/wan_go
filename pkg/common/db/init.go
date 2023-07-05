@@ -33,7 +33,7 @@ func init() {
 
 	//initMongo()
 
-	//initRedis()
+	initRedis()
 
 	fmt.Println("mysql redis mongo initiated")
 }

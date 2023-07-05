@@ -9,7 +9,7 @@
  *
  */
 
-package tools
+package utils
 
 import (
 	"encoding/binary"
@@ -208,6 +208,15 @@ func hash32Len5to12(s []byte, length uint32) uint32 {
 	c += fetch32(s[((length >> 1) & 4):])
 
 	return fmix(mur(c, mur(b, mur(a, d))))
+}
+
+func CityHash32Range(userId int32, from, to int) int {
+	if to-from <= 0 {
+		return from
+	}
+	idStr := Int32ToString(userId)
+	hash32 := int(CityHash32([]byte(idStr), uint32(len(idStr))))
+	return hash32%to + from
 }
 
 func CityHash32(s []byte, length uint32) uint32 {

@@ -1,44 +1,39 @@
 package rocksCache
 
+//see https://github.com/dtm-labs/rockscache
+//document
+//every delete is only delete from cache
+
+// use Fetch to fetch data
+// 1. the first parameter is the key of the data
+// 2. the second parameter is the data expiration time
+// 3. the third parameter is the data fetch function which is called when the cache does not exist
+//v, err := rc.Fetch("key1", 300 * time.Second, func()(string, error) {
+//	// fetch data from database or other sources
+//	return "value1", nil
+//})
+
+//Delete the cache
+//rc.TagAsDeleted(key)
+
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"strconv"
+	"github.com/bytedance/sonic"
 	"time"
+	"wan_go/pkg/common/constant/blog_const"
 	"wan_go/pkg/common/db"
-	imdb "wan_go/pkg/common/db/mysql/im_mysql_model"
+	"wan_go/pkg/common/db/mysql"
+	"wan_go/pkg/common/db/mysql/blog"
 	"wan_go/pkg/common/log"
 	"wan_go/pkg/utils"
 )
 
-const (
-	userInfoCache             = "USER_INFO_CACHE:"
-	friendRelationCache       = "FRIEND_RELATION_CACHE:"
-	blackListCache            = "BLACK_LIST_CACHE:"
-	groupCache                = "GROUP_CACHE:"
-	groupInfoCache            = "GROUP_INFO_CACHE:"
-	groupOwnerIDCache         = "GROUP_OWNER_ID:"
-	joinedGroupListCache      = "JOINED_GROUP_LIST_CACHE:"
-	groupMemberInfoCache      = "GROUP_MEMBER_INFO_CACHE:"
-	groupAllMemberInfoCache   = "GROUP_ALL_MEMBER_INFO_CACHE:"
-	allFriendInfoCache        = "ALL_FRIEND_INFO_CACHE:"
-	allDepartmentCache        = "ALL_DEPARTMENT_CACHE:"
-	allDepartmentMemberCache  = "ALL_DEPARTMENT_MEMBER_CACHE:"
-	joinedSuperGroupListCache = "JOINED_SUPER_GROUP_LIST_CACHE:"
-	groupMemberListHashCache  = "GROUP_MEMBER_LIST_HASH_CACHE:"
-	groupMemberNumCache       = "GROUP_MEMBER_NUM_CACHE:"
-	conversationCache         = "CONVERSATION_CACHE:"
-	conversationIDListCache   = "CONVERSATION_ID_LIST_CACHE:"
-	extendMsgSetCache         = "EXTEND_MSG_SET_CACHE:"
-	extendMsgCache            = "EXTEND_MSG_CACHE:"
-)
-
 func DelKeys() {
-	fmt.Println("init to del old keys")
-	for _, key := range []string{groupCache, friendRelationCache, blackListCache, userInfoCache, groupInfoCache, groupOwnerIDCache, joinedGroupListCache,
-		groupMemberInfoCache, groupAllMemberInfoCache, allFriendInfoCache} {
-		fName := utils.GetSelfFuncName()
+	fmt.Println("init rocks cache to del old keys")
+	fName := utils.GetSelfFuncName()
+	for _, key := range []string{blog_const.ADMIN, blog_const.WEB_INFO, blog_const.SORT_INFO, blog_const.ADMIN_FAMILY,
+		blog_const.ADMIRE} {
 		var cursor uint64
 		var n int
 		for {
@@ -66,375 +61,129 @@ func DelKeys() {
 	}
 }
 
-func GetFriendIDListFromCache(userID string) ([]string, error) {
-	getFriendIDList := func() (string, error) {
-		friendIDList, err := imdb.GetFriendIDListByUserID(userID)
+func GetWebInfo() ([]blog.WebInfo, error) {
+	//网站信息 基本不会变
+	webInfoStr, err := db.DB.Rc.Fetch(blog_const.WEB_INFO, time.Hour*30*24, func() (string, error) {
+		info, err := mysql.GetWebInfo()
 		if err != nil {
-			return "", utils.Wrap(err, "")
+			return "", utils.Wrap(err)
 		}
-		bytes, err := json.Marshal(friendIDList)
+		str, err := sonic.MarshalString(info)
 		if err != nil {
-			return "", utils.Wrap(err, "")
+			return "", utils.Wrap(err)
 		}
-		return string(bytes), nil
-	}
-	friendIDListStr, err := db.DB.Rc.Fetch(friendRelationCache+userID, time.Second*30*60, getFriendIDList)
+		return str, nil
+	})
 	if err != nil {
-		return nil, utils.Wrap(err, "")
+		return nil, utils.Wrap(err)
 	}
-	var friendIDList []string
-	err = json.Unmarshal([]byte(friendIDListStr), &friendIDList)
-	return friendIDList, utils.Wrap(err, "")
+	var webInfo []blog.WebInfo
+	err = sonic.UnmarshalString(webInfoStr, &webInfo)
+	return webInfo, utils.Wrap(err)
 }
 
-func DelFriendIDListFromCache(userID string) error {
-	err := db.DB.Rc.TagAsDeleted(friendRelationCache + userID)
-	return err
+func DeleteWebInfo() error {
+	err := db.DB.Rc.TagAsDeleted(blog_const.WEB_INFO)
+	return utils.Wrap(err)
 }
 
-func GetBlackListFromCache(userID string) ([]string, error) {
-	getBlackIDList := func() (string, error) {
-		blackIDList, err := imdb.GetBlackIDListByUserID(userID)
+func GetSortInfo() ([]*blog.Sort, error) {
+	sortInfoStr, err := db.DB.Rc.Fetch(blog_const.SORT_INFO, time.Hour*24, func() (string, error) {
+		info, err := mysql.GetSortInfo()
 		if err != nil {
-			return "", utils.Wrap(err, "")
+			return "", utils.Wrap(err)
 		}
-		bytes, err := json.Marshal(blackIDList)
+		str, err := sonic.MarshalString(info)
 		if err != nil {
-			return "", utils.Wrap(err, "")
+			return "", utils.Wrap(err)
 		}
-		return string(bytes), nil
-	}
-	blackIDListStr, err := db.DB.Rc.Fetch(blackListCache+userID, time.Second*30*60, getBlackIDList)
+		return str, nil
+	})
 	if err != nil {
-		return nil, utils.Wrap(err, "")
+		return nil, utils.Wrap(err)
 	}
-	var blackIDList []string
-	err = json.Unmarshal([]byte(blackIDListStr), &blackIDList)
-	return blackIDList, utils.Wrap(err, "")
+	var sortInfo []*blog.Sort
+	err = sonic.UnmarshalString(sortInfoStr, &sortInfo)
+	return sortInfo, utils.Wrap(err)
 }
 
-func DelBlackIDListFromCache(userID string) error {
-	return db.DB.Rc.TagAsDeleted(blackListCache + userID)
+func DeleteSortInfo() error {
+	err := db.DB.Rc.TagAsDeleted(blog_const.SORT_INFO)
+	return utils.Wrap(err)
 }
 
-func GetJoinedGroupIDListFromCache(userID string) ([]string, error) {
-	getJoinedGroupIDList := func() (string, error) {
-		joinedGroupList, err := imdb.GetJoinedGroupIDListByUserID(userID)
+func GetAdminUser() (*blog.User, error) {
+	userInfo, err := db.DB.Rc.Fetch(blog_const.ADMIN, time.Hour*24*30, func() (string, error) {
+		user, err := mysql.GetByUserType(blog_const.UserRoleAdmin.Code)
 		if err != nil {
-			return "", utils.Wrap(err, "")
+			return "", utils.Wrap(err)
 		}
-		bytes, err := json.Marshal(joinedGroupList)
+		str, err := sonic.MarshalString(&user)
 		if err != nil {
-			return "", utils.Wrap(err, "")
+			return "", utils.Wrap(err)
 		}
-		return string(bytes), nil
-	}
-	joinedGroupIDListStr, err := db.DB.Rc.Fetch(joinedGroupListCache+userID, time.Second*30*60, getJoinedGroupIDList)
+		return str, nil
+	})
 	if err != nil {
-		return nil, utils.Wrap(err, "")
+		return nil, utils.Wrap(err)
 	}
-	var joinedGroupList []string
-	err = json.Unmarshal([]byte(joinedGroupIDListStr), &joinedGroupList)
-	return joinedGroupList, utils.Wrap(err, "")
+
+	var user blog.User
+	err = sonic.UnmarshalString(userInfo, &user)
+	return &user, err
 }
 
-func DelJoinedGroupIDListFromCache(userID string) error {
-	return db.DB.Rc.TagAsDeleted(joinedGroupListCache + userID)
+func DeleteAdminUser() error {
+	err := db.DB.Rc.TagAsDeleted(blog_const.ADMIN)
+	return utils.Wrap(err)
 }
 
-func DelGroupMemberIDListFromCache(groupID string) error {
-	err := db.DB.Rc.TagAsDeleted(groupCache + groupID)
-	return err
-}
-
-func GetUserInfoFromCache(userID string) (*db.User, error) {
-	getUserInfo := func() (string, error) {
-		userInfo, err := imdb.GetUserByUserID(userID)
+func GetAdminFamily(adminId int32) (*blog.Family, error) {
+	str, err := db.DB.Rc.Fetch(blog_const.ADMIN_FAMILY, time.Hour*24, func() (string, error) {
+		info, err := mysql.GetFamilyByUserId(adminId)
 		if err != nil {
-			return "", utils.Wrap(err, "")
+			return "", utils.Wrap(err)
 		}
-		bytes, err := json.Marshal(userInfo)
+		str, err := sonic.MarshalString(info)
 		if err != nil {
-			return "", utils.Wrap(err, "")
+			return "", utils.Wrap(err)
 		}
-		return string(bytes), nil
-	}
-	userInfoStr, err := db.DB.Rc.Fetch(userInfoCache+userID, time.Second*30*60, getUserInfo)
+		return str, nil
+	})
 	if err != nil {
-		return nil, utils.Wrap(err, "")
+		return nil, utils.Wrap(err)
 	}
-	userInfo := &db.User{}
-	err = json.Unmarshal([]byte(userInfoStr), userInfo)
-	return userInfo, utils.Wrap(err, "")
+	var family blog.Family
+	err = sonic.UnmarshalString(str, &family)
+	return &family, utils.Wrap(err)
 }
 
-func DelUserInfoFromCache(userID string) error {
-	return db.DB.Rc.TagAsDeleted(userInfoCache + userID)
+func DeleteAdminFamily() error {
+	err := db.DB.Rc.TagAsDeleted(blog_const.ADMIN_FAMILY)
+	return utils.Wrap(err)
 }
 
-func GetGroupMemberInfoFromCache(groupID, userID string) (*db.GroupMember, error) {
-	getGroupMemberInfo := func() (string, error) {
-		groupMemberInfo, err := imdb.GetGroupMemberInfoByGroupIDAndUserID(groupID, userID)
+func GetAdmire() (*[]blog.User, error) {
+	str, err := db.DB.Rc.Fetch(blog_const.ADMIRE, time.Hour*24, func() (string, error) {
+		users, err := mysql.GetAdmire()
 		if err != nil {
-			return "", utils.Wrap(err, "")
+			return "", utils.Wrap(err)
 		}
-		bytes, err := json.Marshal(groupMemberInfo)
+		str, err := sonic.MarshalString(users)
 		if err != nil {
-			return "", utils.Wrap(err, "")
+			return "", utils.Wrap(err)
 		}
-		return string(bytes), nil
-	}
-	groupMemberInfoStr, err := db.DB.Rc.Fetch(groupMemberInfoCache+groupID+"-"+userID, time.Second*30*60, getGroupMemberInfo)
+		return str, nil
+	})
 	if err != nil {
-		return nil, utils.Wrap(err, "")
+		return nil, utils.Wrap(err)
 	}
-	groupMember := &db.GroupMember{}
-	err = json.Unmarshal([]byte(groupMemberInfoStr), groupMember)
-	return groupMember, utils.Wrap(err, "")
+	var users []blog.User
+	err = sonic.UnmarshalString(str, &users)
+	return &users, utils.Wrap(err)
 }
 
-func DelGroupMemberInfoFromCache(groupID, userID string) error {
-	return db.DB.Rc.TagAsDeleted(groupMemberInfoCache + groupID + "-" + userID)
-}
-
-func GetAllGroupMembersInfoFromCache(groupID string) ([]*db.GroupMember, error) {
-	getGroupMemberInfo := func() (string, error) {
-		groupMembers, err := imdb.GetGroupMemberListByGroupID(groupID)
-		if err != nil {
-			return "", utils.Wrap(err, "")
-		}
-		bytes, err := json.Marshal(groupMembers)
-		if err != nil {
-			return "", utils.Wrap(err, "")
-		}
-		return string(bytes), nil
-	}
-	groupMembersStr, err := db.DB.Rc.Fetch(groupAllMemberInfoCache+groupID, time.Second*30*60, getGroupMemberInfo)
-	if err != nil {
-		return nil, utils.Wrap(err, "")
-	}
-	var groupMembers []*db.GroupMember
-	err = json.Unmarshal([]byte(groupMembersStr), &groupMembers)
-	return groupMembers, utils.Wrap(err, "")
-}
-
-func DelAllGroupMembersInfoFromCache(groupID string) error {
-	return db.DB.Rc.TagAsDeleted(groupAllMemberInfoCache + groupID)
-}
-
-func GetGroupInfoFromCache(groupID string) (*db.Group, error) {
-	getGroupInfo := func() (string, error) {
-		groupInfo, err := imdb.GetGroupInfoByGroupID(groupID)
-		if err != nil {
-			return "", utils.Wrap(err, "")
-		}
-		bytes, err := json.Marshal(groupInfo)
-		if err != nil {
-			return "", utils.Wrap(err, "")
-		}
-		return string(bytes), nil
-	}
-	groupInfoStr, err := db.DB.Rc.Fetch(groupInfoCache+groupID, time.Second*30*60, getGroupInfo)
-	if err != nil {
-		return nil, utils.Wrap(err, "")
-	}
-	groupInfo := &db.Group{}
-	err = json.Unmarshal([]byte(groupInfoStr), groupInfo)
-	return groupInfo, utils.Wrap(err, "")
-}
-
-func DelGroupInfoFromCache(groupID string) error {
-	return db.DB.Rc.TagAsDeleted(groupInfoCache + groupID)
-}
-
-func GetAllFriendsInfoFromCache(userID string) ([]*db.Friend, error) {
-	getAllFriendInfo := func() (string, error) {
-		friendInfoList, err := imdb.GetFriendListByUserID(userID)
-		if err != nil {
-			return "", utils.Wrap(err, "")
-		}
-		bytes, err := json.Marshal(friendInfoList)
-		if err != nil {
-			return "", utils.Wrap(err, "")
-		}
-		return string(bytes), nil
-	}
-	allFriendInfoStr, err := db.DB.Rc.Fetch(allFriendInfoCache+userID, time.Second*30*60, getAllFriendInfo)
-	if err != nil {
-		return nil, utils.Wrap(err, "")
-	}
-	var friendInfoList []*db.Friend
-	err = json.Unmarshal([]byte(allFriendInfoStr), &friendInfoList)
-	return friendInfoList, utils.Wrap(err, "")
-}
-
-func DelAllFriendsInfoFromCache(userID string) error {
-	return db.DB.Rc.TagAsDeleted(allFriendInfoCache + userID)
-}
-
-func GetAllDepartmentsFromCache() ([]db.Department, error) {
-	getAllDepartments := func() (string, error) {
-		departmentList, err := imdb.GetSubDepartmentList("-1")
-		if err != nil {
-			return "", utils.Wrap(err, "")
-		}
-		bytes, err := json.Marshal(departmentList)
-		if err != nil {
-			return "", utils.Wrap(err, "")
-		}
-		return string(bytes), nil
-	}
-	allDepartmentsStr, err := db.DB.Rc.Fetch(allDepartmentCache, time.Second*30*60, getAllDepartments)
-	if err != nil {
-		return nil, utils.Wrap(err, "")
-	}
-	var allDepartments []db.Department
-	err = json.Unmarshal([]byte(allDepartmentsStr), &allDepartments)
-	return allDepartments, utils.Wrap(err, "")
-}
-
-func DelAllDepartmentsFromCache() error {
-	return db.DB.Rc.TagAsDeleted(allDepartmentCache)
-}
-
-func GetAllDepartmentMembersFromCache() ([]db.DepartmentMember, error) {
-	getAllDepartmentMembers := func() (string, error) {
-		departmentMembers, err := imdb.GetDepartmentMemberList("-1")
-		if err != nil {
-			return "", utils.Wrap(err, "")
-		}
-		bytes, err := json.Marshal(departmentMembers)
-		if err != nil {
-			return "", utils.Wrap(err, "")
-		}
-		return string(bytes), nil
-	}
-	allDepartmentMembersStr, err := db.DB.Rc.Fetch(allDepartmentMemberCache, time.Second*30*60, getAllDepartmentMembers)
-	if err != nil {
-		return nil, utils.Wrap(err, "")
-	}
-	var allDepartmentMembers []db.DepartmentMember
-	err = json.Unmarshal([]byte(allDepartmentMembersStr), &allDepartmentMembers)
-	return allDepartmentMembers, utils.Wrap(err, "")
-}
-
-func DelAllDepartmentMembersFromCache() error {
-	return db.DB.Rc.TagAsDeleted(allDepartmentMemberCache)
-}
-
-func DelJoinedSuperGroupIDListFromCache(userID string) error {
-	err := db.DB.Rc.TagAsDeleted(joinedSuperGroupListCache + userID)
-	return err
-}
-
-func DelGroupMemberListHashFromCache(groupID string) error {
-	err := db.DB.Rc.TagAsDeleted(groupMemberListHashCache + groupID)
-	return err
-}
-
-func GetGroupMemberNumFromCache(groupID string) (int64, error) {
-	getGroupMemberNum := func() (string, error) {
-		num, err := imdb.GetGroupMemberNumByGroupID(groupID)
-		if err != nil {
-			return "", utils.Wrap(err, "")
-		}
-		return strconv.Itoa(int(num)), nil
-	}
-	groupMember, err := db.DB.Rc.Fetch(groupMemberNumCache+groupID, time.Second*30*60, getGroupMemberNum)
-	if err != nil {
-		return 0, utils.Wrap(err, "")
-	}
-	num, err := strconv.Atoi(groupMember)
-	return int64(num), err
-}
-
-func DelGroupMemberNumFromCache(groupID string) error {
-	return db.DB.Rc.TagAsDeleted(groupMemberNumCache + groupID)
-}
-
-func GetUserConversationIDListFromCache(userID string) ([]string, error) {
-	getConversationIDList := func() (string, error) {
-		conversationIDList, err := imdb.GetConversationIDListByUserID(userID)
-		if err != nil {
-			return "", utils.Wrap(err, "getConversationIDList failed")
-		}
-		log.NewDebug("", utils.GetSelfFuncName(), conversationIDList)
-		bytes, err := json.Marshal(conversationIDList)
-		if err != nil {
-			return "", utils.Wrap(err, "")
-		}
-		return string(bytes), nil
-	}
-	conversationIDListStr, err := db.DB.Rc.Fetch(conversationIDListCache+userID, time.Second*30*60, getConversationIDList)
-	var conversationIDList []string
-	err = json.Unmarshal([]byte(conversationIDListStr), &conversationIDList)
-	if err != nil {
-		return nil, utils.Wrap(err, "")
-	}
-	return conversationIDList, nil
-}
-
-func DelUserConversationIDListFromCache(userID string) error {
-	return utils.Wrap(db.DB.Rc.TagAsDeleted(conversationIDListCache+userID), "DelUserConversationIDListFromCache err")
-}
-
-func GetConversationFromCache(ownerUserID, conversationID string) (*db.Conversation, error) {
-	getConversation := func() (string, error) {
-		conversation, err := imdb.GetConversation(ownerUserID, conversationID)
-		if err != nil {
-			return "", utils.Wrap(err, "get failed")
-		}
-		bytes, err := json.Marshal(conversation)
-		if err != nil {
-			return "", utils.Wrap(err, "Marshal failed")
-		}
-		return string(bytes), nil
-	}
-	conversationStr, err := db.DB.Rc.Fetch(conversationCache+ownerUserID+":"+conversationID, time.Second*30*60, getConversation)
-	if err != nil {
-		return nil, utils.Wrap(err, "Fetch failed")
-	}
-	conversation := db.Conversation{}
-	err = json.Unmarshal([]byte(conversationStr), &conversation)
-	if err != nil {
-		return nil, utils.Wrap(err, "Unmarshal failed")
-	}
-	return &conversation, nil
-}
-
-func GetConversationsFromCache(ownerUserID string, conversationIDList []string) ([]db.Conversation, error) {
-	var conversationList []db.Conversation
-	for _, conversationID := range conversationIDList {
-		conversation, err := GetConversationFromCache(ownerUserID, conversationID)
-		if err != nil {
-			return nil, utils.Wrap(err, "GetConversationFromCache failed")
-		}
-		conversationList = append(conversationList, *conversation)
-	}
-	return conversationList, nil
-}
-
-func GetUserAllConversationList(ownerUserID string) ([]db.Conversation, error) {
-	IDList, err := GetUserConversationIDListFromCache(ownerUserID)
-	if err != nil {
-		return nil, err
-	}
-	var conversationList []db.Conversation
-	log.NewDebug("", utils.GetSelfFuncName(), IDList)
-	for _, conversationID := range IDList {
-		conversation, err := GetConversationFromCache(ownerUserID, conversationID)
-		if err != nil {
-			return nil, utils.Wrap(err, "GetConversationFromCache failed")
-		}
-		conversationList = append(conversationList, *conversation)
-	}
-	return conversationList, nil
-}
-
-func DelConversationFromCache(ownerUserID, conversationID string) error {
-	return utils.Wrap(db.DB.Rc.TagAsDeleted(conversationCache+ownerUserID+":"+conversationID), "DelConversationFromCache err")
-}
-
-func DelExtendMsg(ID string, index int32, clientMsgID string) error {
-	return utils.Wrap(db.DB.Rc.TagAsDeleted(extendMsgCache+clientMsgID), "DelExtendMsg err")
+func DeleteAdmire() error {
+	err := db.DB.Rc.TagAsDeleted(blog_const.ADMIRE)
+	return utils.Wrap(err)
 }

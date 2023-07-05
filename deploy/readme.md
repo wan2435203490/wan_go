@@ -9,7 +9,7 @@ make win-build-all
 # 目前没有处理 Open-IM-SDK-Core ，需要的话可以自己单独处理这个模块
 make image-all
 
-# docker-compose.yaml 分成了两部分，一部分是openIM的镜像容器 openim.yaml，一部分是依赖的环境 env.yaml
+# docker-compose.yml.yaml 分成了两部分，一部分是openIM的镜像容器 openim.yaml，一部分是依赖的环境 env.yaml
 # 两部分使用一个外部的网络来联通，所以首先创建用到的 network
 docker network create openim --attachable=true -d bridge
 
@@ -18,10 +18,10 @@ mkdir ./config
 cp ./config.example.yaml ./config/config.yaml # 修改 ./config/config.yaml 内容，比如各个依赖组件的 host
 
 # 然后拉起env.yaml
-docker-compose -f ./env.yaml up -d
+docker-compose.yml -f ./env.yaml up -d
 
 # 等env 容器全部拉起成功之后，拉起openim.yaml
-docker-compose -f ./openim.yaml up -d
+docker-compose.yml -f ./openim.yaml up -d
 
 # 查看容器运行，推荐使用下 portainer ，web查看容器情况，查看日志等等
 docker container ps -a | grep openim

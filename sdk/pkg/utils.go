@@ -5,6 +5,7 @@ import (
 	"log"
 	"runtime"
 	"strconv"
+	"wan_go/pkg/common/db"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -80,4 +81,13 @@ func GetOrm(c *gin.Context) (*gorm.DB, error) {
 	default:
 		return nil, errors.New("db connect not exist")
 	}
+}
+
+func Orm(c *gin.Context) *gorm.DB {
+	if c == nil {
+		//for init cache
+		return db.DB.MysqlDB
+	}
+	orm, _ := GetOrm(c)
+	return orm
 }

@@ -22,6 +22,25 @@ func HandleError(err error) {
 	}
 }
 
+func TestToWebp(t *testing.T) {
+
+	index := 1
+	postfix := "jpeg"
+	//postfix := "jpg"
+	//postfix := "png"
+	quality := 60
+	path := fmt.Sprintf("/Users/wan/Pictures/blogImage/love/%d.%s", index, postfix)
+	image := Image{}
+	_ = image.Open(path)
+
+	savePath := fmt.Sprintf("/Users/wan/Pictures/blogImage/love/%d.webp", index)
+	_ = image.SaveToWebP(float32(quality), savePath)
+	//
+	//image2 := Image{}
+	//_ = image2.Open(savePath)
+	//_ = image2.MakeWebpThumbnail(1200, 650, 80)
+}
+
 func TestJpegToWebpThumbnail(t *testing.T) {
 	path := "/Users/wan/Pictures/blogImage/poetize.jpg"
 	image := Image{}

@@ -1,16 +1,16 @@
 ## Search库
 
-|type|描述|query示例|
-|:---|:---|:---|
-|exact/iexact|等于|status=1|
-|contains/icontanins|包含|name=n|
-|gt/gte|大于/大于等于|age=18|
-|lt/lte|小于/小于等于|age=18|
-|startswith/istartswith|以…起始|content=hell|
-|endswith/iendswith|以…结束|content=world|
-|in|in查询|status[]=0&status[]=1|
-|isnull|isnull查询|startTime=1|
-|order|排序|sort=asc/sort=desc|
+| type                   |描述|query示例|
+|:-----------------------|:---|:---|
+| eq                     |等于|status=1|
+| contains/icontanins    |包含|name=n|
+| gt/gte                 |大于/大于等于|age=18|
+| lt/lte                 |小于/小于等于|age=18|
+| startswith/istartswith |以…起始|content=hell|
+| endswith/iendswith     |以…结束|content=world|
+| in                     |in查询|status[]=0&status[]=1|
+| isnull                 |isnull查询|startTime=1|
+| order                  |排序|sort=asc/sort=desc|
 
 e.g.
 ```

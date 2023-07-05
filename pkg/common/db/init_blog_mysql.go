@@ -79,6 +79,7 @@ func InitMysql(DB *DataBases) {
 
 	db.AutoMigrate(
 		&blog.User{},
+		&blog.Role{},
 		&blog.Article{},
 		&blog.Comment{},
 		&blog.Sort{},

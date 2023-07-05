@@ -43,17 +43,17 @@ func (e *Settings) init() {
 
 // Config 配置集合
 type Config struct {
-	Application *Application          `yaml:"application"`
-	Ssl         *Ssl                  `yaml:"ssl"`
-	Logger      *Logger               `yaml:"logger"`
-	Jwt         *Jwt                  `yaml:"jwt"`
-	Database    *Database             `yaml:"database"`
-	Databases   *map[string]*Database `yaml:"databases"`
-	Gen         *Gen                  `yaml:"gen"`
-	Cache       *Cache                `yaml:"cache"`
-	Queue       *Queue                `yaml:"queue"`
-	Locker      *Locker               `yaml:"locker"`
-	Extend      interface{}           `yaml:"extend"`
+	//Application *Application          `yaml:"application"`
+	Ssl    *Ssl    `yaml:"ssl"`
+	Logger *Logger `yaml:"logger"`
+	//Jwt         *Jwt                  `yaml:"jwt"`
+	Database  *Database             `yaml:"database"`
+	Databases *map[string]*Database `yaml:"databases"`
+	Gen       *Gen                  `yaml:"gen"`
+	Cache     *Cache                `yaml:"cache"`
+	Queue     *Queue                `yaml:"queue"`
+	Locker    *Locker               `yaml:"locker"`
+	Extend    interface{}           `yaml:"extend"`
 }
 
 // 多db改造
@@ -71,17 +71,17 @@ func Setup(s source.Source,
 	fs ...func()) {
 	_cfg = &Settings{
 		Settings: Config{
-			Application: ApplicationConfig,
-			Ssl:         SslConfig,
-			Logger:      LoggerConfig,
-			Jwt:         JwtConfig,
-			Database:    DatabaseConfig,
-			Databases:   &DatabasesConfig,
-			Gen:         GenConfig,
-			Cache:       CacheConfig,
-			Queue:       QueueConfig,
-			Locker:      LockerConfig,
-			Extend:      ExtendConfig,
+			//Application: ApplicationConfig,
+			Ssl:    SslConfig,
+			Logger: LoggerConfig,
+			//Jwt:         JwtConfig,
+			Database:  DatabaseConfig,
+			Databases: &DatabasesConfig,
+			Gen:       GenConfig,
+			Cache:     CacheConfig,
+			Queue:     QueueConfig,
+			Locker:    LockerConfig,
+			Extend:    ExtendConfig,
 		},
 		callbacks: fs,
 	}

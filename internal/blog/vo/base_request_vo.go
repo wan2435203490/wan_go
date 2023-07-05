@@ -1,4 +1,4 @@
-package blog
+package vo
 
 import (
 	r "wan_go/pkg/common/response"
@@ -26,6 +26,6 @@ type BaseRequestVO[T any] struct {
 }
 
 func (vo *BaseRequestVO[T]) SetRecords(Records *[]T) {
-	vo.Total = len(*Records)
+	vo.Total = int64(len(*Records))
 	vo.Records = *Records
 }

@@ -1,4 +1,4 @@
-package blog
+package vo
 
 type LoginVO struct {
 	Account  string `form:"username"`

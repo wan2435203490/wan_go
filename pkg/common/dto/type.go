@@ -2,7 +2,7 @@ package dto
 
 import (
 	"github.com/gin-gonic/gin"
-	"go-admin/common/models"
+	"wan_go/pkg/common/models"
 )
 
 type Index interface {

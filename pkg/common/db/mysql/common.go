@@ -1,22 +1,22 @@
-package blog
+package mysql
 
 import (
 	"errors"
 	"gorm.io/gorm"
 	"wan_go/pkg/common/constant/blog_const"
 	"wan_go/pkg/common/db"
+	"wan_go/pkg/common/db/mysql/blog"
 )
 
 func Orm() *gorm.DB {
 	return db.DB.MysqlDB.Debug()
 }
 
-func GetAdmire() (users *[]User, err error) {
-	//todo test
+func GetAdmire() (users []blog.User, err error) {
 	if err = Orm().
-		Where("admire is not null").
+		Where("admire > 0").
 		Select("user_name", "admire", "avatar").
-		Find(users).
+		Find(&users).
 		Error; err != nil {
 		return nil, err
 	}
@@ -36,9 +36,9 @@ type CountLabel struct {
 	LabelCount int32 `gorm:"label_count,omitempty"`
 }
 
-func GetSortInfo() (sorts *[]*Sort, err error) {
+func GetSortInfo() (sorts []*blog.Sort, err error) {
 
-	if err := Orm().Model(&Sort{}).Find(sorts).Error; err != nil {
+	if err := Orm().Model(&blog.Sort{}).Find(&sorts).Error; err != nil {
 		return nil, err
 	}
 
@@ -47,7 +47,7 @@ func GetSortInfo() (sorts *[]*Sort, err error) {
 	}
 
 	var countSorts []CountSort
-	if err := Orm().Model(&Article{}).
+	if err := Orm().Model(&blog.Article{}).
 		Select("sort_id, count(1) as sort_count").
 		Where("view_status = ?", blog_const.STATUS_ENABLE.Code).
 		Group("sort_id").
@@ -58,7 +58,7 @@ func GetSortInfo() (sorts *[]*Sort, err error) {
 	}
 
 	var countLabels []CountLabel
-	if err := Orm().Model(&Article{}).
+	if err := Orm().Model(&blog.Article{}).
 		Select("label_id, count(1) as label_count").
 		Where("view_status = ?", blog_const.STATUS_ENABLE.Code).
 		Group("label_id").
@@ -68,7 +68,7 @@ func GetSortInfo() (sorts *[]*Sort, err error) {
 		return nil, err
 	}
 
-	var labels []*Label
+	var labels []*blog.Label
 	//直接搜的全量label 数据量大考虑增加过滤sort_id
 	if err := Orm().Find(&labels).Error; err != nil {
 		//s.Log.Errorf("GetSortInfo Labels error: %s", err)
@@ -76,7 +76,7 @@ func GetSortInfo() (sorts *[]*Sort, err error) {
 	}
 
 	//或者传sorts *[]*Sort
-	for _, sort := range *sorts {
+	for _, sort := range sorts {
 
 		for _, countSort := range countSorts {
 			if sort.ID == countSort.SortId {
@@ -84,7 +84,7 @@ func GetSortInfo() (sorts *[]*Sort, err error) {
 			}
 		}
 
-		var sortLabels []*Label
+		var sortLabels []*blog.Label
 		for _, label := range labels {
 			sortLabels = append(sortLabels, label)
 
@@ -100,22 +100,22 @@ func GetSortInfo() (sorts *[]*Sort, err error) {
 	return sorts, nil
 }
 
-func GetWebInfo() ([]WebInfo, error) {
-	var webInfos []WebInfo
-	if err := Orm().Model(&WebInfo{}).Find(&webInfos).Error; err != nil {
+func GetWebInfo() ([]blog.WebInfo, error) {
+	var webInfos []blog.WebInfo
+	if err := Orm().Model(&blog.WebInfo{}).Find(&webInfos).Error; err != nil {
 		return nil, err
 	}
 	return webInfos, nil
 }
 
-func GetByUserType(userType int8) (*User, error) {
-	user := User{}
+func GetByUserType(userType int8) (*blog.User, error) {
+	user := blog.User{}
 	err := Orm().Where("user_type=?", userType).Find(&user).Error
 	return &user, err
 }
 
-func GetFamilyByUserId(userId int32) (*Family, error) {
-	family := Family{}
+func GetFamilyByUserId(userId int32) (*blog.Family, error) {
+	family := blog.Family{}
 	if err := Orm().Where("user_id=?", userId).First(&family).Error; err != nil {
 		//s.Log.Errorf("GetByUserId error:%s", err)
 		return nil, err

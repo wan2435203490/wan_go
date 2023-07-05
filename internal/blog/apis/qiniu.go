@@ -3,6 +3,7 @@ package apis
 import (
 	"github.com/gin-gonic/gin"
 	"os"
+	"wan_go/internal/blog/service/dto"
 	"wan_go/pkg/common/api"
 	"wan_go/pkg/utils"
 )
@@ -13,11 +14,11 @@ type QiniuApi struct {
 
 // GetUpToken 获取覆盖凭证
 func (a QiniuApi) GetUpToken(c *gin.Context) {
-	a.MakeContext(c)
-	var key string
-	//a.StringFailed(&key, "key")
-
-	token := utils.GetQiniuToken(key)
+	req := dto.GetUpTokenReq{}
+	if a.MakeContextChain(c, nil, &req) == nil {
+		return
+	}
+	token := utils.GetQiniuToken(req.Key)
 
 	a.OK(token)
 }

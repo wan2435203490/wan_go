@@ -262,7 +262,7 @@ func (that *Image) SaveToWebP(quality float32, savePath string) (err error) {
 	var img image.Image
 	reader := bytes.NewReader(that.Data)
 	lossLess := false //是否无损压缩
-	Exact := false    //透明部分消失
+	Exact := true     //透明部分消失
 	switch that.ImageType {
 	case ImageJpeg:
 		img, _ = jpeg.Decode(reader)

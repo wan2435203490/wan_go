@@ -1,30 +1,34 @@
 package handler
 
 import (
-	log "github.com/go-admin-team/go-admin-core/logger"
-	"github.com/go-admin-team/go-admin-core/sdk/pkg"
 	"gorm.io/gorm"
+	log "wan_go/core/logger"
+	"wan_go/pkg/common/db/mysql/blog"
+	"wan_go/pkg/utils"
+	"wan_go/sdk/pkg"
 )
 
 type Login struct {
-	Username string `form:"UserName" json:"username" binding:"required"`
-	Password string `form:"Password" json:"password" binding:"required"`
-	Code     string `form:"Code" json:"code" binding:"required"`
-	UUID     string `form:"UUID" json:"uuid" binding:"required"`
+	UserName string `form:"username" json:"username" binding:"required"`
+	Password string `form:"password" json:"password" binding:"required"`
+	Captcha  string `form:"captcha" json:"captcha" binding:"required"`
+	UUID     string `form:"uuid" json:"uuid" binding:"required"`
+	IsAdmin  bool   `form:"isAdmin" json:"isAdmin"`
 }
 
-func (u *Login) GetUser(tx *gorm.DB) (user SysUser, role SysRole, err error) {
-	err = tx.Table("sys_user").Where("username = ?  and status = '2'", u.Username).First(&user).Error
+func (u *Login) GetUser(tx *gorm.DB) (user blog.User, role blog.Role, err error) {
+	err = tx.Table("user").Where("user_name = ?", u.UserName).First(&user).Error
 	if err != nil {
 		log.Errorf("get user error, %s", err.Error())
 		return
 	}
-	_, err = pkg.CompareHashAndPassword(user.Password, u.Password)
+	dec := utils.AesDecryptCrypotJsKey(u.Password)
+	_, err = pkg.CompareHashAndPassword(user.Password, dec)
 	if err != nil {
 		log.Errorf("user login error, %s", err.Error())
 		return
 	}
-	err = tx.Table("sys_role").Where("role_id = ? ", user.RoleId).First(&role).Error
+	err = tx.Table("role").Where("id = ? ", user.RoleId).First(&role).Error
 	if err != nil {
 		log.Errorf("get role error, %s", err.Error())
 		return

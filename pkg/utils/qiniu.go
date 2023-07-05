@@ -213,7 +213,7 @@ func BatchGetFiles(keys []string) map[string]map[string]string {
 	if len(rets) == 0 {
 		// 处理错误
 		if _, ok := err.(*storage.ErrorInfo); ok {
-			//logs.NewWarn("BatchGetFiles", "batch error, code:%d", e.Code)
+			//logs.NewWarn("BatchGetFiles", "batch error, code:%d", e.Captcha)
 		} else {
 			//logs.Info("BatchGetFiles", "batch error, %s", err)
 		}

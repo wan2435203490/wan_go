@@ -12,9 +12,9 @@ RUN apk add tzdata
 #设置时区
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo '$TZ' > /etc/timezone
 
-WORKDIR /landlord
+WORKDIR /wan_go
 COPY . .
 ADD /config/config.yaml /wan_goconfig/
 
-EXPOSE 8080
-CMD ["./landlord"]
+EXPOSE 8090
+CMD ["./blog"]

@@ -14,6 +14,9 @@ type loggerKey struct{}
 
 // GetRequestLogger 获取上下文提供的日志
 func GetRequestLogger(c *gin.Context) *logger.Helper {
+	if c == nil {
+		return nil
+	}
 	var log *logger.Helper
 	l, ok := c.Get(pkg.LoggerKey)
 	if ok {

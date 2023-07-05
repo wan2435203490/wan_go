@@ -1,10 +1,3 @@
-/*
- * @Author: lwnmengjing
- * @Date: 2021/6/9 10:39 上午
- * @Last Modified by: lwnmengjing
- * @Last Modified time: 2021/6/9 10:39 上午
- */
-
 package api
 
 import (
@@ -21,12 +14,12 @@ import (
 	chTranslations "github.com/go-playground/validator/v10/translations/zh"
 )
 
-func (a *Api) Translate(form, to interface{}) {
+func (a Api) Translate(form, to interface{}) {
 	pkg.Translate(form, to)
 }
 
 // getAcceptLanguage 获取当前语言
-func (a *Api) getAcceptLanguage() string {
+func (a Api) getAcceptLanguage() string {
 	languages := language.ParseAcceptLanguage(a.Context.GetHeader("Accept-Language"), nil)
 	if len(languages) == 0 {
 		return DefaultLanguage

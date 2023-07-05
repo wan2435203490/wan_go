@@ -1,115 +1,121 @@
 package apis
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
+	"wan_go/internal/blog/service"
+	"wan_go/internal/blog/service/dto"
+	"wan_go/internal/blog/vo"
+	"wan_go/pkg/common/actions"
 	"wan_go/pkg/common/api"
-	"wan_go/pkg/common/cache"
+	"wan_go/pkg/common/constant"
 	"wan_go/pkg/common/constant/blog_const"
 	"wan_go/pkg/common/db/mysql/blog"
-	"wan_go/pkg/common/db/mysql/blog/db_article"
-	"wan_go/pkg/common/db/mysql/blog/db_wei_yan"
-	"wan_go/pkg/utils"
-	blogVO "wan_go/pkg/vo/blog"
+	"wan_go/sdk/pkg/jwtauth/user"
 )
 
 type WeiYanApi struct {
 	api.Api
 }
 
-func (a WeiYanApi) SaveWeiYan(c *gin.Context) {
-	a.MakeContext(c)
-	var vo blog.WeiYan
-	if a.BindFailed(&vo) {
+func (a WeiYanApi) InsertWeiYan(c *gin.Context) {
+	s := service.WeiYan{}
+	req := dto.SaveWeiYanReq{}
+	if a.MakeContextChain(c, &s.Service, &req) == nil {
 		return
 	}
 
-	if a.EmptyFailed("微言不能为空！", vo.Content) {
+	req.SetCreateBy(user.GetUserId(c))
+	req.UserId = user.GetUserId32(c)
+	req.IsPublic = true
+	req.Type = blog_const.WEIYAN_TYPE_FRIEND
+
+	if a.IsError(s.InsertReq(&req)) {
 		return
 	}
 
-	userId := cache.GetUserId()
-	if a.IsFailed(userId < 1, "用户登录信息失效，请重新登录！") {
-		return
-	}
-
-	weiYan := blog.WeiYan{
-		UserId:   int32(userId),
-		Content:  vo.Content,
-		IsPublic: vo.IsPublic,
-		Type:     blog_const.WEIYAN_TYPE_FRIEND,
-	}
-
-	if a.IsError(db_wei_yan.Insert(&weiYan)) {
-		return
-	}
-	a.OK()
+	a.OKMsg(req.GetId(), constant.DBInsertOK)
 }
 
-func (a WeiYanApi) SaveNews(c *gin.Context) {
-	a.MakeContext(c)
-	var vo blog.WeiYan
-	if a.BindFailed(&vo) {
+func (a WeiYanApi) InsertNews(c *gin.Context) {
+	s := service.WeiYan{}
+	req := dto.SaveWeiYanReq{}
+	if a.MakeContextChain(c, &s.Service, &req) == nil {
 		return
 	}
 
-	if a.IsFailed(utils.IsEmpty(vo.Content) || vo.Source == 0 || vo.CreatedAt.IsZero(), "信息不全！") {
+	var exist bool
+	userId := user.GetUserId32(c)
+	as := service.Article{}
+	if a.IsError(as.ExistArticleByUserId(req.Source, userId, &exist)) {
 		return
 	}
-
-	exist := db_article.ExistArticleByUserId(vo.Source)
 	if a.IsFailed(!exist, "来源不存在！") {
 		return
 	}
+	req.SetCreateBy(user.GetUserId(c))
 
-	weiYan := blog.WeiYan{
-		UserId:   int32(cache.GetUserId()),
-		Content:  vo.Content,
-		IsPublic: true,
-		Source:   vo.Source,
-		Type:     blog_const.WEIYAN_TYPE_NEWS,
-	}
+	req.UserId = user.GetUserId32(c)
+	req.IsPublic = true
+	req.Type = blog_const.WEIYAN_TYPE_NEWS
 
-	if a.IsError(db_wei_yan.Insert(&weiYan)) {
+	if a.IsError(s.InsertReq(&req)) {
 		return
 	}
-	a.OK()
+
+	a.OKMsg(req.GetId(), constant.DBInsertOK)
 }
 
 func (a WeiYanApi) DeleteWeiYan(c *gin.Context) {
-	a.MakeContext(c)
-	var id int
-	if a.IntFailed(&id, "id") {
+	s := service.WeiYan{}
+	req := dto.DelWeiYanReq{}
+	if a.MakeContextChain(c, &s.Service, &req) == nil {
 		return
 	}
-	a.Done(db_wei_yan.DeleteByUserId(id))
+
+	userId := user.GetUserId32(c)
+	if a.IsError(s.Delete(&req, userId)) {
+		return
+	}
+
+	a.OKMsg(req.GetId(), constant.DBDeleteOK)
 }
 
 func (a WeiYanApi) ListNews(c *gin.Context) {
-	a.MakeContext(c)
-	var vo blogVO.BaseRequestVO[*blog.WeiYan]
-	if a.BindPageFailed(&vo) {
+	s := service.WeiYan{}
+	req := dto.PageNewsReq{}
+	if a.MakeContextChain(c, &s.Service, &req) == nil {
 		return
 	}
 
-	if a.IsFailed(vo.Source == 0, "来源不能为空！") {
+	p := actions.GetPermissionFromContext(c)
+	var page vo.Page[blog.WeiYan]
+	page.Set(req.Pagination)
+
+	if a.IsError(s.PageNews(&req, p, &page)) {
 		return
 	}
 
-	db_wei_yan.ListNews(&vo)
-
-	a.OK(&vo)
+	a.OK(&page)
 }
 
 func (a WeiYanApi) ListWeiYan(c *gin.Context) {
-	a.MakeContext(c)
-	var vo blogVO.BaseRequestVO[*blog.WeiYan]
-	if a.BindPageFailed(&vo) {
+	s := service.WeiYan{}
+	req := dto.PageWeiYanReq{}
+	if a.MakeContextChain(c, &s.Service, &req) == nil {
 		return
 	}
 
-	db_wei_yan.ListWeiYan(&vo)
+	p := actions.GetPermissionFromContext(c)
+	var page vo.Page[blog.WeiYan]
+	page.Set(req.Pagination)
 
-	fmt.Println("qwqwq")
-	a.OK(&vo)
+	userId := user.GetUserId32(c)
+	if userId == 0 {
+		userId = int32(blog_const.ADMIN_USER_ID)
+	}
+	if a.IsError(s.Page(&req, p, &page, userId)) {
+		return
+	}
+
+	a.OK(&page)
 }

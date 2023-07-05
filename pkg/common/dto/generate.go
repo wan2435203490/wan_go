@@ -3,9 +3,9 @@ package dto
 import (
 	vd "github.com/bytedance/go-tagexpr/v2/validator"
 	"net/http"
+	"wan_go/pkg/common/api"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-admin-team/go-admin-core/sdk/api"
 )
 
 type ObjectById struct {

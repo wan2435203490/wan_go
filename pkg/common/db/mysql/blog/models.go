@@ -1,6 +1,7 @@
 package blog
 
 import (
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
@@ -10,7 +11,7 @@ import (
 type User struct {
 	gorm.Model   `json:",inline"`
 	ID           int32  `gorm:"column:id;type:INT;AUTO_INCREMENT;primaryKey;NOT NULL" json:"id,omitempty"`
-	UserName     string `gorm:"column:user_name;type:VARCHAR(32);" json:"userName,omitempty"`
+	UserName     string `gorm:"column:user_name;type:VARCHAR(32);" json:"username,omitempty"`
 	Password     string `gorm:"column:password;type:VARCHAR(128);" json:"password,omitempty"`
 	PhoneNumber  string `gorm:"column:phone_number;type:VARCHAR(16);" json:"phoneNumber,omitempty"`
 	Email        string `gorm:"column:email;type:VARCHAR(32);" json:"email,omitempty"`
@@ -21,11 +22,53 @@ type User struct {
 	Admire       string `gorm:"column:admire;type:VARCHAR(32);" json:"admire,omitempty"`
 	Introduction string `gorm:"column:introduction;type:VARCHAR(4096);" json:"introduction,omitempty"`
 	UserType     int8   `gorm:"column:user_type;type:TINYINT(2);NOT NULL" json:"userType,omitempty"`
+	RoleId       int32  `gorm:"column:role_id;type:INT" json:"roleId,omitempty"` //1为admin 2为operator
 
 	//CreateTime time.Time `gorm:"column:create_time;type:DATETIME;"`
 	//UpdateTime time.Time `gorm:"column:update_time;type:DATETIME;"`
-	UpdateBy string `gorm:"column:update_by;type:VARCHAR(32);" json:"updateBy,omitempty"`
+	UpdateBy     string `gorm:"column:update_by;type:VARCHAR(32);" json:"updateBy,omitempty"`
+	CrypotJsText string `gorm:"column:crypot_js_text;type:VARCHAR(128);" json:"-"`
 	//Deleted    bool      `gorm:"column://Deleted;type:TINYINT(1);NOT NULL"`
+}
+
+func (User) TableName() string {
+	return "user"
+}
+
+// Encrypt 加密
+func (e *User) Encrypt() (err error) {
+	if e.Password == "" {
+		return
+	}
+
+	//默认注册roleId为2
+	e.UserType = 2
+	e.RoleId = 2
+	var hash []byte
+	if hash, err = bcrypt.GenerateFromPassword([]byte(e.Password), bcrypt.DefaultCost); err != nil {
+		return
+	} else {
+		e.Password = string(hash)
+		return
+	}
+}
+
+func (e *User) BeforeCreate(_ *gorm.DB) error {
+	return e.Encrypt()
+}
+
+type Role struct {
+	gorm.Model `json:",inline"`
+	ID         int32  `gorm:"column:id;type:INT;AUTO_INCREMENT;primaryKey;NOT NULL" json:"id,omitempty"`
+	Name       string `gorm:"column:name;type:VARCHAR(32);" json:"userName,omitempty"`
+	Key        string `json:"key" gorm:"size:128;"` //角色代码
+	Sort       int    `json:"sort" gorm:""`         //角色排序
+	Admin      bool   `json:"admin" gorm:"size:4;"`
+	DataScope  string `json:"dataScope" gorm:"size:128;"`
+}
+
+func (Role) TableName() string {
+	return "role"
 }
 
 // 文章表
@@ -50,6 +93,10 @@ type Article struct {
 	//Deleted         int8      `gorm:"column://Deleted;type:TINYINT(1);NOT NULL"`
 }
 
+func (Article) TableName() string {
+	return "article"
+}
+
 // 文章评论表
 type Comment struct {
 	gorm.Model
@@ -66,15 +113,23 @@ type Comment struct {
 	//CreateTime      time.Time `gorm:"column:create_time;type:DATETIME;"`
 }
 
+func (Comment) TableName() string {
+	return "comment"
+}
+
 // 分类
 type Sort struct {
-	ID              int32    `gorm:"column:id;type:INT;AUTO_INCREMENT;NOT NULL" json:"id"`
-	SortName        string   `gorm:"column:sort_name;type:VARCHAR(32);NOT NULL" json:"sortName"`
-	SortDescription string   `gorm:"column:sort_description;type:VARCHAR(256);NOT NULL" json:"sortDescription"`
-	SortType        int8     `gorm:"column:sort_type;type:TINYINT(2);NOT NULL" json:"sortType"`
-	Priority        int32    `gorm:"column:priority;type:INT;" json:"priority"`
-	CountOfSort     int32    `gorm:"-:all" json:"countOfSort"`
-	Labels          []*Label `gorm:"-:all" json:"labels"`
+	ID              int32     `gorm:"column:id;type:INT;AUTO_INCREMENT;NOT NULL" json:"id"`
+	SortName        string    `gorm:"column:sort_name;type:VARCHAR(32);NOT NULL" json:"sortName"`
+	SortDescription string    `gorm:"column:sort_description;type:VARCHAR(256);NOT NULL" json:"sortDescription"`
+	SortType        int8      `gorm:"column:sort_type;type:TINYINT(2);NOT NULL" json:"sortType"`
+	Priority        int32     `gorm:"column:priority;type:INT;" json:"priority"`
+	CountOfSort     int32     `gorm:"-:all" json:"countOfSort"`
+	Labels          *[]*Label `gorm:"-:all" json:"labels"`
+}
+
+func (Sort) TableName() string {
+	return "sort"
 }
 
 // 标签
@@ -86,6 +141,10 @@ type Label struct {
 	CountOfLabel     int32  `gorm:"-:all" json:"countOfLabel"`
 }
 
+func (Label) TableName() string {
+	return "label"
+}
+
 // 树洞
 type TreeHole struct {
 	gorm.Model `json:"-"` //`json:",inline"`
@@ -93,6 +152,10 @@ type TreeHole struct {
 	Avatar     string     `gorm:"column:avatar;type:VARCHAR(256);" json:"avatar"`
 	Message    string     `gorm:"column:message;type:VARCHAR(64);NOT NULL" json:"message"`
 	//CreateTime time.Time `gorm:"column:create_time;type:DATETIME;"`
+}
+
+func (TreeHole) TableName() string {
+	return "tree_hole"
 }
 
 // 微言表
@@ -106,6 +169,10 @@ type WeiYan struct {
 	Source    int32  `gorm:"column:source;type:INT;" json:"source"`
 	IsPublic  bool   `gorm:"column:is_public;type:TINYINT(1);NOT NULL" json:"isPublic"`
 	//CreateTime time.Time `gorm:"column:create_time;type:DATETIME;"`
+}
+
+func (WeiYan) TableName() string {
+	return "wei_yan"
 }
 
 // 网站信息表
@@ -124,6 +191,10 @@ type WebInfo struct {
 	Status          bool   `gorm:"column:status;type:TINYINT(1);NOT NULL" json:"status"`
 }
 
+func (WebInfo) TableName() string {
+	return "web_info"
+}
+
 // 资源路径
 type ResourcePath struct {
 	gorm.Model
@@ -139,6 +210,10 @@ type ResourcePath struct {
 	//CreateTime   time.Time `gorm:"column:create_time;type:DATETIME;"`
 }
 
+func (ResourcePath) TableName() string {
+	return "resource_path"
+}
+
 // 资源信息
 type Resource struct {
 	gorm.Model
@@ -150,6 +225,10 @@ type Resource struct {
 	MimeType string `gorm:"column:mime_type;type:VARCHAR(256);" json:"mimeType"`
 	Status   bool   `gorm:"column:status;type:TINYINT(1);NOT NULL" json:"status"`
 	//CreateTime time.Time `gorm:"column:create_time;type:DATETIME;"`
+}
+
+func (Resource) TableName() string {
+	return "resource"
 }
 
 // 家庭信息
@@ -172,6 +251,10 @@ type Family struct {
 	//UpdateTime     time.Time `gorm:"column:update_time;type:DATETIME;"`
 }
 
+func (Family) TableName() string {
+	return "family"
+}
+
 // 好友
 type ImChatUserFriend struct {
 	gorm.Model
@@ -181,6 +264,10 @@ type ImChatUserFriend struct {
 	FriendStatus int8   `gorm:"column:friend_status;type:TINYINT(2);NOT NULL"`
 	Remark       string `gorm:"column:remark;type:VARCHAR(32);"`
 	//CreateTime   time.Time `gorm:"column:create_time;type:DATETIME;"`
+}
+
+func (ImChatUserFriend) TableName() string {
+	return "im_chat_user_friend"
 }
 
 // 聊天群
@@ -197,6 +284,10 @@ type ImChatGroup struct {
 	//CreateTime   time.Time `gorm:"column:create_time;type:DATETIME;"`
 }
 
+func (ImChatGroup) TableName() string {
+	return "im_chat_group"
+}
+
 // 聊天群成员
 type ImChatGroupUser struct {
 	gorm.Model
@@ -210,6 +301,10 @@ type ImChatGroupUser struct {
 	//CreateTime   time.Time `gorm:"column:create_time;type:DATETIME;"`
 }
 
+func (ImChatGroupUser) TableName() string {
+	return "im_chat_group_user"
+}
+
 // 单聊记录
 type ImChatUserMessage struct {
 	gorm.Model
@@ -221,6 +316,10 @@ type ImChatUserMessage struct {
 	//CreateTime    time.Time `gorm:"column:create_time;type:DATETIME;"`
 }
 
+func (ImChatUserMessage) TableName() string {
+	return "im_chat_user_message"
+}
+
 // 群聊记录
 type ImChatUserGroupMessage struct {
 	gorm.Model
@@ -230,6 +329,10 @@ type ImChatUserGroupMessage struct {
 	ToId    int32  `gorm:"column:to_id;type:INT;"`
 	Content string `gorm:"column:content;type:VARCHAR(1024);NOT NULL"`
 	//CreateTime time.Time `gorm:"column:create_time;type:DATETIME;"`
+}
+
+func (ImChatUserGroupMessage) TableName() string {
+	return "im_chat_user_group_message"
 }
 
 func (to *WebInfo) Copy(from *WebInfo) {

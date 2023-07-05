@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"go-admin/common/models"
+	//"go-admin/common/models"
 	"gorm.io/gorm"
 )
 
@@ -24,8 +24,8 @@ type SysUser struct {
 	PostIds  []int  `json:"postIds" gorm:"-"`
 	RoleIds  []int  `json:"roleIds" gorm:"-"`
 	//Dept     *SysDept `json:"dept"`
-	models.ControlBy
-	models.ModelTime
+	//models.ControlBy
+	//models.ModelTime
 }
 
 func (SysUser) TableName() string {

@@ -1,17 +1,16 @@
 package db_user
 
 import (
-	"database/sql"
+	"errors"
+	"github.com/gin-gonic/gin"
 	"regexp"
 	"strings"
-	blogVO "wan_go/internal/blog/vo"
+	"wan_go/internal/blog/service"
+	"wan_go/internal/blog/vo"
 	"wan_go/pkg/common/cache"
 	"wan_go/pkg/common/constant/blog_const"
 	"wan_go/pkg/common/db"
 	"wan_go/pkg/common/db/mysql/blog"
-	"wan_go/pkg/common/db/mysql/blog/db_im_chat_group_friend"
-	"wan_go/pkg/common/db/mysql/blog/db_im_chat_group_user"
-	"wan_go/pkg/common/db/mysql/blog/db_wei_yan"
 	r "wan_go/pkg/common/response"
 	"wan_go/pkg/utils"
 )
@@ -27,42 +26,36 @@ func isMobile(phoneNumber string) bool {
 	return reg.MatchString(phoneNumber)
 }
 
-func Register(userIn *blogVO.UserVO) *blogVO.UserVO {
-	var userOut blogVO.UserVO
+func Register(c *gin.Context, userIn *vo.UserVO) (*vo.UserVO, error) {
+	var userOut vo.UserVO
 	if isMobile(userIn.UserName) {
-		userOut.Msg = "用户名不能为电话号码！"
-		return &userOut
+		return nil, errors.New("用户名不能为电话号码！")
 	}
 
 	if strings.Contains(userIn.UserName, "@") {
-		userOut.Msg = "用户名不能包含@！"
-		return &userOut
+		return nil, errors.New("用户名不能包含@！")
 	}
 
 	if utils.IsNotEmpty(userIn.PhoneNumber) && utils.IsNotEmpty(userIn.Email) {
-		userOut.Msg = "手机号与邮箱只能选择其中一个！"
-		return &userOut
+		return nil, errors.New("手机号与邮箱只能选择其中一个！")
 	}
 
 	if utils.IsNotEmpty(userIn.PhoneNumber) {
 		key := blog_const.FORGET_PASSWORD + userIn.PhoneNumber + "_1"
 		get, b := cache.GetString(key)
 		if !b || get != userIn.Code {
-			userOut.Msg = "验证码错误！"
-			return &userOut
+			return nil, errors.New("验证码错误！")
 		}
 		cache.Delete(key)
 	} else if utils.IsNotEmpty(userIn.Email) {
 		//key := blog_const.FORGET_PASSWORD + userIn.Email + "_2"
 		//get, b := cache.GetString(key)
-		//if !b || get != userIn.Code {
-		//	userOut.Msg = "验证码错误！"
-		//	return &userOut
+		//if !b || get != userIn.Captcha {
+		//return nil, errors.New("验证码错误！")
 		//}
 		//cache.Delete(key)
 	} else {
-		userOut.Msg = "请输入邮箱或手机号！"
-		return &userOut
+		return nil, errors.New("请输入邮箱或手机号！")
 	}
 
 	jsEncodePwd := userIn.Password
@@ -71,27 +64,23 @@ func Register(userIn *blogVO.UserVO) *blogVO.UserVO {
 
 	var count int64
 	if err := db.Mysql().Model(&blog.User{}).Where("user_name=?", userIn.UserName).Count(&count).Error; err != nil {
-		userOut.Msg = err.Error()
-		return &userOut
+		return nil, err
 	}
 	if count > 0 {
-		userOut.Msg = "用户名重复！"
-		return &userOut
+		return nil, errors.New("用户名重复！")
 	}
 
 	if utils.IsNotEmpty(userIn.PhoneNumber) {
 		//下面就不去判错了
 		db.Mysql().Model(&blog.User{}).Where("phone_number=?", userIn.PhoneNumber).Count(&count)
 		if count > 0 {
-			userOut.Msg = "手机号重复！"
-			return &userOut
+			return nil, errors.New("手机号重复！")
 		}
 	} else if utils.IsNotEmpty(userIn.Email) {
 		//下面就不去判错了
 		db.Mysql().Model(&blog.User{}).Where("email=?", userIn.Email).Count(&count)
 		if count > 0 {
-			userOut.Msg = "邮箱重复！"
-			return &userOut
+			return nil, errors.New("邮箱重复！")
 		}
 	}
 
@@ -104,18 +93,15 @@ func Register(userIn *blogVO.UserVO) *blogVO.UserVO {
 	user.CrypotJsText = jsEncodePwd
 
 	if utils.IsEmpty(user.Avatar) {
-		//todo 七牛云头像random
-		//userOut.Avatar = randomavatar
+		user.Avatar = utils.RandomAvatar(0)
 	}
 
 	if err := Insert(&user); err != nil {
-		userOut.Msg = err.Error()
-		return &userOut
+		return nil, err
 	}
 
 	if err := db.Mysql().Find(&user).Error; err != nil {
-		userOut.Msg = err.Error()
-		return &userOut
+		return nil, err
 	}
 
 	userToken := blog_const.USER_ACCESS_TOKEN + utils.UUID()
@@ -129,115 +115,40 @@ func Register(userIn *blogVO.UserVO) *blogVO.UserVO {
 
 	weiYan := blog.WeiYan{}
 	weiYan.UserId = user.ID
-	weiYan.Content = "我也到此一游"
+	weiYan.Content = "到此一游~"
 	weiYan.Type = blog_const.WEIYAN_TYPE_FRIEND
 	weiYan.IsPublic = true
-	_ = db_wei_yan.Insert(&weiYan)
+	wys := service.NewWeiYan(c)
+	_ = wys.Insert(&weiYan)
 
-	imChatGroupUser := blog.ImChatGroupUser{}
-	imChatGroupUser.UserId = user.ID
-	imChatGroupUser.GroupId = blog_const.DEFAULT_GROUP_ID
-	imChatGroupUser.UserStatus = blog_const.GROUP_USER_STATUS_PASS
-	_ = db_im_chat_group_user.Insert(&imChatGroupUser)
+	/** im
+	//
+	//imChatGroupUser := blog.ImChatGroupUser{}
+	//imChatGroupUser.UserId = user.ID
+	//imChatGroupUser.GroupId = blog_const.DEFAULT_GROUP_ID
+	//imChatGroupUser.UserStatus = blog_const.GROUP_USER_STATUS_PASS
+	//_ = db_im_chat_group_user.InsertReq(&imChatGroupUser)
+	//
+	//imChatUser := blog.ImChatUserFriend{}
+	//imChatUser.UserId = user.ID
+	//imChatUser.FriendId = int32(cache.GetAdminUserId())
+	//imChatUser.Remark = "站长"
+	//imChatUser.FriendStatus = blog_const.FRIEND_STATUS_PASS
+	//_ = db_im_chat_group_friend.InsertReq(&imChatUser)
+	//
+	//imChatFriend := blog.ImChatUserFriend{}
+	//imChatFriend.UserId = int32(cache.GetAdminUserId())
+	//imChatFriend.FriendId = user.ID
+	//imChatFriend.FriendStatus = blog_const.FRIEND_STATUS_PASS
+	//_ = db_im_chat_group_friend.InsertReq(&imChatFriend)
+	*/
 
-	imChatUser := blog.ImChatUserFriend{}
-	imChatUser.UserId = user.ID
-	imChatUser.FriendId = int32(cache.GetAdminUserId())
-	imChatUser.Remark = "站长"
-	imChatUser.FriendStatus = blog_const.FRIEND_STATUS_PASS
-	_ = db_im_chat_group_friend.Insert(&imChatUser)
-
-	imChatFriend := blog.ImChatUserFriend{}
-	imChatFriend.UserId = int32(cache.GetAdminUserId())
-	imChatFriend.FriendId = user.ID
-	imChatFriend.FriendStatus = blog_const.FRIEND_STATUS_PASS
-	_ = db_im_chat_group_friend.Insert(&imChatFriend)
-
-	return &userOut
+	return &userOut, nil
 }
 
-func Login(account string, password string, isAdmin bool) *blogVO.UserVO {
+func LoginByToken(token string) *vo.UserVO {
 
-	var userVO blogVO.UserVO
-
-	var err error
-	password = utils.AesDecryptCrypotJsKey(password)
-	//password = utils.Md5(password)
-
-	//var user blog.User
-	//if err = db.Mysql().Debug().Where("password = @password and (user_name = @account or email = @account or phone_number = @account)",
-	//	sql.Named("password", password), sql.Named("account", account)).First(&user).Error; err != nil {
-	//	userVO.Msg = "账号/密码错误，请重新输入！"
-	//	return &userVO
-	//}
-
-	var user blog.User
-	if err = db.Mysql().Debug().Where("password = @password and email = @account)",
-		sql.Named("password", password), sql.Named("account", account)).First(&user).Error; err != nil {
-		userVO.Msg = "账号/密码错误，请重新输入！"
-		return &userVO
-	}
-
-	if !user.UserStatus {
-		userVO.Msg = "账号被冻结！"
-		return &userVO
-	}
-
-	if isAdmin {
-		adminLogin(&user, &userVO)
-	} else {
-		userLogin(&user, &userVO)
-	}
-
-	userVO.Copy(&user)
-	userVO.Password = ""
-
-	return &userVO
-}
-
-func adminLogin(user *blog.User, userVO *blogVO.UserVO) {
-	var token string
-
-	if user.UserType != blog_const.USER_TYPE_ADMIN.Code && user.UserType != blog_const.USER_TYPE_DEV.Code {
-		userVO.Msg = "请输入管理员账号！"
-	}
-
-	key := blog_const.ADMIN_TOKEN + utils.Int32ToString(user.ID)
-	if get, b := cache.Get(key); b {
-		token = get.(string)
-	}
-
-	if utils.IsEmpty(token) {
-		token = blog_const.ADMIN_ACCESS_TOKEN + utils.UUID()
-		cache.Set(token, user)
-		cache.Set(key, token)
-	}
-
-	if user.UserType == blog_const.USER_TYPE_ADMIN.Code {
-		userVO.IsBoss = true
-	}
-	userVO.AccessToken = token
-}
-
-func userLogin(user *blog.User, userVO *blogVO.UserVO) {
-	var token string
-
-	key := blog_const.USER_TOKEN + utils.Int32ToString(user.ID)
-	if get, b := cache.Get(key); b {
-		token = get.(string)
-	}
-
-	if utils.IsEmpty(token) {
-		token = blog_const.USER_ACCESS_TOKEN + utils.UUID()
-		cache.Set(token, user)
-		cache.Set(key, token)
-	}
-	userVO.AccessToken = token
-}
-
-func LoginByToken(token string) *blogVO.UserVO {
-
-	var userVO blogVO.UserVO
+	var userVO vo.UserVO
 	token = utils.AesDecryptCrypotJsKey(token)
 	if utils.IsEmpty(token) {
 		userVO.Msg = "未登录，请登录后再进行操作！"
@@ -265,8 +176,8 @@ func Exit(token string, userId int32) {
 	cache.Delete(token)
 }
 
-func UpdateUserInfo(userIn *blogVO.UserVO, userToken string) *blogVO.UserVO {
-	var userOut blogVO.UserVO
+func UpdateUserInfo(userIn *vo.UserVO) *vo.UserVO {
+	var userOut vo.UserVO
 	if isMobile(userIn.UserName) {
 		userOut.Msg = "用户名不能为电话号码！"
 		return &userOut
@@ -305,24 +216,20 @@ func UpdateUserInfo(userIn *blogVO.UserVO, userToken string) *blogVO.UserVO {
 		return &userOut
 	}
 
-	key := blog_const.USER_TOKEN + utils.Int32ToString(user.ID)
-	cache.Set(userToken, &user)
-	cache.Set(key, userToken)
-
 	userOut.Copy(&user)
 	userOut.Password = ""
 
 	return &userOut
 }
 
-func UpdateSecretInfo(place, flag, captcha, password string, user *blog.User) *blogVO.UserVO {
+func UpdateSecretInfo(place, flag, captcha, password string, userId int32) *vo.UserVO {
 	password = utils.AesDecryptCrypotJsKey(password)
 
-	userVO := blogVO.UserVO{}
+	userVO := vo.UserVO{}
 	if flag == "1" || flag == "2" {
 		//token校验了
 		//if utils.Md5(password) != user.Password {
-		//	userVO.Msg = "密码错误！"
+		//	userVO.Message = "密码错误！"
 		//	return &userVO
 		//}
 
@@ -333,11 +240,11 @@ func UpdateSecretInfo(place, flag, captcha, password string, user *blog.User) *b
 	}
 
 	updateUser := blog.User{}
-	updateUser.ID = user.ID
+	updateUser.ID = userId
 
 	var count int64
 	//todo 统一管理key
-	key := blog_const.USER_CODE + utils.Int32ToString(user.ID) + "_" + place + "_" + flag
+	key := blog_const.USER_CODE + utils.Int32ToString(userId) + "_" + place + "_" + flag
 
 	switch flag {
 	case "1":
@@ -373,7 +280,7 @@ func UpdateSecretInfo(place, flag, captcha, password string, user *blog.User) *b
 		//if utils.Md5(place) == user.Password {
 		//	updateUser.Password = utils.Md5(password)
 		//} else {
-		//	userVO.Msg = "密码错误！"
+		//	userVO.Message = "密码错误！"
 		//	return &userVO
 		//}
 	default:
@@ -389,7 +296,7 @@ func UpdateSecretInfo(place, flag, captcha, password string, user *blog.User) *b
 		return &userVO
 	}
 
-	key = blog_const.USER_TOKEN + utils.Int32ToString(user.ID)
+	key = blog_const.USER_TOKEN + utils.Int32ToString(userId)
 	cache.Set(utils.Token(), &updateUser)
 	cache.Set(key, utils.Token())
 
@@ -398,7 +305,7 @@ func UpdateSecretInfo(place, flag, captcha, password string, user *blog.User) *b
 	return &userVO
 }
 
-func validateCaptcha(key, captcha string, userVO *blogVO.UserVO, fun func()) bool {
+func validateCaptcha(key, captcha string, userVO *vo.UserVO, fun func()) bool {
 	captchaCache, ok := cache.GetString(key)
 	if ok && captchaCache == captcha {
 		cache.Delete(key)
@@ -469,38 +376,9 @@ func Get(user *blog.User) error {
 	return db.Mysql().Find(&user).Error
 }
 
-func GetByUserType(userType int8) *blog.User {
-	user := blog.User{}
-	db.Mysql().Where("user_type=?", userType).Find(&user)
-	return &user
-}
-
-//db.DB.MysqlDB.Where("name LIKE ?", "group%")
-
-func ListWith(query interface{}, args ...interface{}) ([]*blog.User, error) {
-
-	var users []*blog.User
-
-	tx := db.Mysql()
-
-	if query == nil || args == nil {
-		tx = tx.Select(query, args)
-	}
-
-	if err := tx.Find(&users).Error; err != nil {
-		return nil, err
-	}
-
-	return users, nil
-}
-
-func List() ([]*blog.User, error) {
-	return ListWith(nil, nil)
-}
-
 const LimitUserList = 10
 
-func ListByUserName(userName string) []*blogVO.UserVO {
+func ListByUserName(userName string) []*vo.UserVO {
 
 	var users []*blog.User
 	if err := db.Mysql().Select("id, user_name, avatar, gender, introduction").
@@ -509,46 +387,14 @@ func ListByUserName(userName string) []*blogVO.UserVO {
 		return nil
 	}
 
-	var result = make([]*blogVO.UserVO, LimitUserList)
+	var result = make([]*vo.UserVO, LimitUserList)
 	for _, user := range users {
-		vo := blogVO.UserVO{}
+		vo := vo.UserVO{}
 		vo.Copy(user)
 		result = append(result, &vo)
 	}
 
 	return result
-}
-
-func ListUser(vo *blogVO.BaseRequestVO[*blog.User]) {
-
-	var users []*blog.User
-	tx := db.Page(&vo.Pagination).Where("user_status=?", vo.UserStatus)
-	if vo.UserType > 0 {
-		tx.Where("user_type=?", vo.UserType)
-	}
-	if utils.IsNotEmpty(vo.SearchKey) {
-		tx.Where("(user_name=@searchKey or phone_number=@searchKey)", sql.Named("searchKey", vo.SearchKey))
-	}
-	if err := tx.Omit("password, open_id").Order("created_at DESC").Find(&users).Error; err != nil {
-		return
-	}
-
-	vo.Total = len(users)
-	vo.Records = users
-}
-
-func UpdateUserStatus(userId int, userStatus bool) {
-	db.Mysql().Model(&blog.User{ID: int32(userId)}).Where("user_status=?", !userStatus).
-		Update("user_status", userStatus)
-}
-
-func UpdateAdmire(userId int, admire string) {
-	db.Mysql().Model(&blog.User{ID: int32(userId)}).Update("admire", admire)
-	cache.Delete(blog_const.ADMIRE)
-}
-
-func UpdateUserType(userId int, userType int) {
-	db.Mysql().Model(&blog.User{ID: int32(userId)}).Update("user_type", userType)
 }
 
 func Update(user *blog.User) error {
@@ -557,8 +403,4 @@ func Update(user *blog.User) error {
 
 func Insert(user *blog.User) error {
 	return db.Mysql().Create(&user).Error
-}
-
-func Delete(user *blog.User) error {
-	return db.Mysql().Delete(&user).Error
 }

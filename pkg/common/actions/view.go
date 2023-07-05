@@ -2,16 +2,14 @@ package actions
 
 import (
 	"errors"
-	"github.com/go-admin-team/go-admin-core/sdk/pkg/response"
-	"net/http"
-
 	"github.com/gin-gonic/gin"
-	log "github.com/go-admin-team/go-admin-core/logger"
-	"github.com/go-admin-team/go-admin-core/sdk/pkg"
 	"gorm.io/gorm"
-
-	"go-admin/common/dto"
-	"go-admin/common/models"
+	"net/http"
+	log "wan_go/core/logger"
+	"wan_go/pkg/common/dto"
+	"wan_go/pkg/common/models"
+	"wan_go/sdk/pkg"
+	"wan_go/sdk/pkg/response"
 )
 
 // ViewAction 通用详情动作

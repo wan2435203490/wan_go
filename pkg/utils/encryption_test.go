@@ -2,12 +2,43 @@ package utils
 
 import (
 	"fmt"
+	"golang.org/x/crypto/bcrypt"
 	"testing"
+	"wan_go/pkg/common/config"
 )
 
 func TestLoginAesEncrypt(t *testing.T) {
-	//want APQHcSKDlE+dVPS7qoPxig==
-	fmt.Println(AesEncrypt("123456", config.Config.Blog.CrypotJSKey))
+	//123456 want APQHcSKDlE+dVPS7qoPxig==
+	fmt.Println(len(AesEncrypt("0fjkj00fjkjhkvb0fjkjhkvb0fjkjhkvb0fjkjhkvbfjkjhkvbhkvb", config.Config.Blog.CrypotJSKey)))
+}
+func TestAesEncryptCrypotJsKey(t *testing.T) {
+	str := AesEncryptCrypotJsKey("qwq")
+	fmt.Println(str)
+
+	str = AesDecryptCrypotJsKey(str)
+	fmt.Println(str)
+}
+
+func TestEnc(t *testing.T) {
+	err := bcrypt.CompareHashAndPassword([]byte("$2a$10$WPCDDh8D6eH5AkFq8WaVceF27CfsVTirv.sIJ5nb.z4DdjCGqqzyG"), []byte("qwq"))
+	if err != nil {
+		println(err)
+	}
+	//var arr []string
+	//for i := 0; i < 10; i++ {
+	//	password := "qwq"
+	//	fromPassword, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	//	fmt.Println(string(fromPassword))
+	//	arr = append(arr, string(fromPassword))
+	//}
+	//
+	//for i, v := range arr {
+	//	err := bcrypt.CompareHashAndPassword([]byte(v), []byte("qwq"))
+	//	if err != nil {
+	//		fmt.Println(i, ":", err)
+	//	}
+	//}
+
 }
 
 func TestAesSimpleEncrypt(t *testing.T) {

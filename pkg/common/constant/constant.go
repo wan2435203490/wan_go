@@ -1,6 +1,44 @@
 package constant
 
 const (
+	DBInsertOK    = "创建成功"
+	DBInsertError = "创建失败"
+	DBGetOK       = "查询成功"
+	DBGetError    = "查询失败"
+	DBUpdateOK    = "更新成功"
+	DBUpdateError = "更新失败"
+	DBDeleteOK    = "删除成功"
+	DBDeleteError = "删除失败"
+	DBListOK      = "查询成功"
+	DBListError   = "查询失败"
+
+	DefaultPageSize = 100
+
+	DB = "db"
+
+	AdminID     = 1
+	AdminRoleID = 1
+
+	User = "user"
+	Role = "role"
+
+	ClaimsIdentity    = "Identity"
+	ClaimsUserName    = "UserName"
+	ClaimsAvatar      = "Avatar"
+	ClaimsPassword    = "Password"
+	ClaimsEmail       = "Email"
+	ClaimsPhoneNumber = "PhoneNumber"
+	ClaimsRoleId      = "RoleId"
+	ClaimsRoleName    = "RoleName"
+	ClaimsDataScope   = "DataScope"
+
+	ClaimsExpire = "exp"
+	// ClaimsOriginalIat original token at
+	ClaimsOriginalIat = "orig_iat"
+
+	JWTToken = "JWT_TOKEN"
+
+	JWTPayloadKey = "JWT_PAYLOAD"
 
 	//group admin
 	//	OrdinaryMember = 0

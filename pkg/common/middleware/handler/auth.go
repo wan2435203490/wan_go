@@ -1,65 +1,69 @@
 package handler
 
 import (
-	"go-admin/app/admin/models"
-	"go-admin/common"
-	"net/http"
-
 	"github.com/gin-gonic/gin"
-	"github.com/go-admin-team/go-admin-core/sdk"
-	"github.com/go-admin-team/go-admin-core/sdk/api"
-	"github.com/go-admin-team/go-admin-core/sdk/config"
-	"github.com/go-admin-team/go-admin-core/sdk/pkg"
-	"github.com/go-admin-team/go-admin-core/sdk/pkg/captcha"
-	jwt "github.com/go-admin-team/go-admin-core/sdk/pkg/jwtauth"
-	"github.com/go-admin-team/go-admin-core/sdk/pkg/jwtauth/user"
-	"github.com/go-admin-team/go-admin-core/sdk/pkg/response"
-	"github.com/mssola/user_agent"
-	"go-admin/common/global"
+	"net/http"
+	"wan_go/pkg/common/api"
+	"wan_go/pkg/common/config"
+	"wan_go/pkg/common/constant"
+	"wan_go/pkg/common/db/mysql/blog"
+	"wan_go/sdk/pkg"
+	"wan_go/sdk/pkg/captcha"
+	jwt "wan_go/sdk/pkg/jwtauth"
+	"wan_go/sdk/pkg/response"
 )
 
+// PayloadFunc LoginHandler
 func PayloadFunc(data interface{}) jwt.MapClaims {
 	if v, ok := data.(map[string]interface{}); ok {
-		u, _ := v["user"].(SysUser)
-		r, _ := v["role"].(SysRole)
+		u, _ := v[constant.User].(blog.User)
+		r, _ := v[constant.Role].(blog.Role)
 		return jwt.MapClaims{
-			jwt.IdentityKey:  u.UserId,
-			jwt.RoleIdKey:    r.RoleId,
-			jwt.RoleKey:      r.RoleKey,
-			jwt.NiceKey:      u.Username,
-			jwt.DataScopeKey: r.DataScope,
-			jwt.RoleNameKey:  r.RoleName,
+			jwt.Identity:    u.ID,
+			jwt.UserName:    u.UserName,
+			jwt.Avatar:      u.Avatar,
+			jwt.Password:    u.Password,
+			jwt.PhoneNumber: u.PhoneNumber,
+			jwt.Email:       u.Email,
+			jwt.RoleId:      r.ID,
+			jwt.RoleName:    r.Name,
+			jwt.DataScope:   r.DataScope,
 		}
 	}
 	return jwt.MapClaims{}
 }
 
+// IdentityHandler Get From PayloadFunc
 func IdentityHandler(c *gin.Context) interface{} {
 	claims := jwt.ExtractClaims(c)
 	return map[string]interface{}{
-		"IdentityKey": claims["identity"],
-		"UserName":    claims["nice"],
-		"RoleKey":     claims["rolekey"],
-		"UserId":      claims["identity"],
-		"RoleIds":     claims["roleid"],
-		"DataScope":   claims["datascope"],
+		jwt.Identity:    claims[jwt.Identity],
+		jwt.UserName:    claims[jwt.UserName],
+		jwt.Avatar:      claims[jwt.Avatar],
+		jwt.Password:    claims[jwt.Password],
+		jwt.PhoneNumber: claims[jwt.PhoneNumber],
+		jwt.Email:       claims[jwt.Email],
+		jwt.RoleId:      claims[jwt.RoleId],
+		jwt.RoleName:    claims[jwt.RoleName],
+		jwt.DataScope:   claims[jwt.DataScope],
 	}
 }
 
 // Authenticator 获取token
-// @Summary 登陆
-// @Description 获取token
-// @Description LoginHandler can be used by clients to get a jwt token.
-// @Description Payload needs to be json in the form of {"username": "USERNAME", "password": "PASSWORD"}.
-// @Description Reply will be of the form {"token": "TOKEN"}.
-// @Description dev mode：It should be noted that all fields cannot be empty, and a value of 0 can be passed in addition to the account password
-// @Description 注意：开发模式：需要注意全部字段不能为空，账号密码外可以传入0值
-// @Tags 登陆
-// @Accept  application/json
-// @Product application/json
-// @Param account body Login  true "account"
-// @Success 200 {string} string "{"code": 200, "expire": "2019-08-07T12:45:48+08:00", "token": ".eyJleHAiOjE1NjUxNTMxNDgsImlkIjoiYWRtaW4iLCJvcmlnX2lhdCI6MTU2NTE0OTU0OH0.-zvzHvbg0A" }"
-// @Router /api/v1/login [post]
+//
+//	@Summary		登陆
+//	@Description	获取token
+//	@Description	LoginHandler can be used by clients to get a jwt token.
+//	@Description	Payload needs to be json in the form of {"username": "USERNAME", "password": "PASSWORD"}.
+//	@Description	Reply will be of the form {"token": "TOKEN"}.
+//	@Description	dev mode：It should be noted that all fields cannot be empty, and a value of 0 can be passed in addition to the account password
+//	@Description	注意：开发模式：需要注意全部字段不能为空，账号密码外可以传入0值
+//	@Tags			登陆
+//	@Accept			application/json
+//	@Product		application/json
+//	@Param			account	body		Login	true	"account"
+//	@Success		200		{string}	string	"{"code": 200, "expire": "2019-08-07T12:45:48+08:00", "token": ".eyJleHAiOjE1NjUxNTMxNDgsImlkIjoiYWRtaW4iLCJvcmlnX2lhdCI6MTU2NTE0OTU0OH0.-zvzHvbg0A" }"
+//	@Router			/api/v1/login [post]
 func Authenticator(c *gin.Context) (interface{}, error) {
 	log := api.GetRequestLogger(c)
 	db, err := pkg.GetOrm(c)
@@ -73,20 +77,20 @@ func Authenticator(c *gin.Context) (interface{}, error) {
 	var status = "2"
 	var msg = "登录成功"
 	var username = ""
-	defer func() {
-		LoginLogToDB(c, status, msg, username)
-	}()
+	//defer func() {
+	//	LoginLogToDB(c, status, msg, username)
+	//}()
 
-	if err = c.ShouldBind(&loginVals); err != nil {
-		username = loginVals.Username
+	if err = c.Bind(&loginVals); err != nil {
+		username = loginVals.UserName
 		msg = "数据解析失败"
 		status = "1"
 
 		return nil, jwt.ErrMissingLoginValues
 	}
-	if config.ApplicationConfig.Mode != "dev" {
-		if !captcha.Verify(loginVals.UUID, loginVals.Code, true) {
-			username = loginVals.Username
+	if config.Config.Application.Mode != "dev" && !loginVals.IsAdmin {
+		if !captcha.Verify(loginVals.UUID, loginVals.Captcha, true) {
+			username = loginVals.UserName
 			msg = "验证码错误"
 			status = "1"
 
@@ -95,88 +99,67 @@ func Authenticator(c *gin.Context) (interface{}, error) {
 	}
 	user, role, e := loginVals.GetUser(db)
 	if e == nil {
-		username = loginVals.Username
+		username = loginVals.UserName
 
-		return map[string]interface{}{"user": user, "role": role}, nil
+		return map[string]interface{}{constant.User: user, constant.Role: role}, nil
 	} else {
 		msg = "登录失败"
 		status = "1"
-		log.Warnf("%s login failed!", loginVals.Username)
+		log.Warnf("%s login failed!", loginVals.UserName)
 	}
+	log.Info(status, username, msg)
 	return nil, jwt.ErrFailedAuthentication
 }
 
-// LoginLogToDB Write log to database
-func LoginLogToDB(c *gin.Context, status string, msg string, username string) {
-	if !config.LoggerConfig.EnabledDB {
-		return
-	}
-	log := api.GetRequestLogger(c)
-	l := make(map[string]interface{})
-
-	ua := user_agent.New(c.Request.UserAgent())
-	l["ipaddr"] = common.GetClientIP(c)
-	l["loginLocation"] = "" // pkg.GetLocation(common.GetClientIP(c),gaConfig.ExtConfig.AMap.Key)
-	l["loginTime"] = pkg.GetCurrentTime()
-	l["status"] = status
-	l["remark"] = c.Request.UserAgent()
-	browserName, browserVersion := ua.Browser()
-	l["browser"] = browserName + " " + browserVersion
-	l["os"] = ua.OS()
-	l["platform"] = ua.Platform()
-	l["username"] = username
-	l["msg"] = msg
-
-	q := sdk.Runtime.GetMemoryQueue(c.Request.Host)
-	message, err := sdk.Runtime.GetStreamMessage("", global.LoginLog, l)
-	if err != nil {
-		log.Errorf("GetStreamMessage error, %s", err.Error())
-		//日志报错错误，不中断请求
-	} else {
-		err = q.Append(message)
-		if err != nil {
-			log.Errorf("Append message error, %s", err.Error())
-		}
-	}
-}
-
 // LogOut
-// @Summary 退出登录
-// @Description 获取token
+//
+//	@Summary		退出登录
+//	@Description	获取token
+//
 // LoginHandler can be used by clients to get a jwt token.
 // Reply will be of the form {"token": "TOKEN"}.
-// @Accept  application/json
-// @Product application/json
-// @Success 200 {string} string "{"code": 200, "msg": "成功退出系统" }"
-// @Router /logout [post]
-// @Security Bearer
+//
+//	@Accept			application/json
+//	@Product		application/json
+//	@Success		200	{string}	string	"{"code": 200, "msg": "成功退出系统" }"
+//	@Router			/logout [post]
+//	@Security		Bearer
 func LogOut(c *gin.Context) {
-	LoginLogToDB(c, "2", "退出成功", user.GetUserName(c))
 	c.JSON(http.StatusOK, gin.H{
 		"code": 200,
 		"msg":  "退出成功",
 	})
-
 }
 
 func Authorizator(data interface{}, c *gin.Context) bool {
 
 	if v, ok := data.(map[string]interface{}); ok {
-		u, _ := v["user"].(models.SysUser)
-		r, _ := v["role"].(models.SysRole)
-		c.Set("role", r.RoleName)
-		c.Set("roleIds", r.RoleId)
-		c.Set("userId", u.UserId)
-		c.Set("userName", u.Username)
-		c.Set("dataScope", r.DataScope)
+		u, _ := v[constant.User].(blog.User)
+		r, _ := v[constant.Role].(blog.Role)
+		c.Set(constant.ClaimsIdentity, u.ID)
+		c.Set(constant.ClaimsUserName, u.UserName)
+		c.Set(constant.ClaimsPassword, u.Password)
+		c.Set(constant.ClaimsEmail, u.Email)
+		c.Set(constant.ClaimsPhoneNumber, u.PhoneNumber)
+		c.Set(constant.ClaimsRoleId, r.ID)
+		c.Set(constant.ClaimsRoleName, r.Name)
+		c.Set(constant.ClaimsDataScope, r.DataScope)
 		return true
 	}
 	return false
 }
 
 func Unauthorized(c *gin.Context, code int, message string) {
-	c.JSON(http.StatusOK, gin.H{
-		"code": code,
-		"msg":  message,
-	})
+	//c.JSON(http.StatusOK, gin.H{
+	//	"code": code,
+	//	"msg":  message,
+	//})
+	//res := &r.Response{}
+	//res.Message = message
+	//res.Status = r.ErrorStatus
+	//res.Captcha = code
+	//
+	//c.JSON(code, res)
+
+	response.Error(c, code, nil, message)
 }

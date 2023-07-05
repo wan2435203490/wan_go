@@ -2,15 +2,14 @@ package actions
 
 import (
 	"net/http"
+	"wan_go/pkg/common/api"
+	"wan_go/pkg/common/dto"
+	"wan_go/pkg/common/models"
+	"wan_go/sdk/pkg"
+	"wan_go/sdk/pkg/jwtauth/user"
+	"wan_go/sdk/pkg/response"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-admin-team/go-admin-core/sdk/api"
-	"github.com/go-admin-team/go-admin-core/sdk/pkg"
-	"github.com/go-admin-team/go-admin-core/sdk/pkg/jwtauth/user"
-	"github.com/go-admin-team/go-admin-core/sdk/pkg/response"
-
-	"go-admin/common/dto"
-	"go-admin/common/models"
 )
 
 // CreateAction 通用新增动作

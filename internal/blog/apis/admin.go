@@ -2,236 +2,246 @@ package apis
 
 import (
 	"github.com/gin-gonic/gin"
+	"wan_go/internal/blog/service"
+	"wan_go/internal/blog/service/dto"
+	"wan_go/internal/blog/vo"
+	"wan_go/pkg/common/actions"
 	"wan_go/pkg/common/api"
-	"wan_go/pkg/common/cache"
-	"wan_go/pkg/common/constant/blog_const"
+	"wan_go/pkg/common/constant"
 	"wan_go/pkg/common/db/mysql/blog"
-	"wan_go/pkg/common/db/mysql/blog/db_article"
-	"wan_go/pkg/common/db/mysql/blog/db_comment"
-	"wan_go/pkg/common/db/mysql/blog/db_tree_hole"
-	"wan_go/pkg/common/db/mysql/blog/db_user"
-	"wan_go/pkg/common/db/mysql/blog/db_web_info"
+	rocksCache "wan_go/pkg/common/db/rocks_cache"
 	r "wan_go/pkg/common/response"
-	"wan_go/pkg/utils"
-	blogVO "wan_go/pkg/vo/blog"
+	"wan_go/sdk/pkg/jwtauth/user"
 )
 
 type AdminApi struct {
 	api.Api
 }
 
+// 太多了吧，，，，，，，，，，，，，，，
+
+// ListUser 查询角色列表
+//
+//	@Summary		查询角色列表
+//	@Description	获取JSON
+//	@Tags			admin
+//	@Param			account			query		string				false	"账号"
+//	@Param			userStatus		query		*bool				false	"用户状态"
+//	@Param			loginLocation	query		string				false	"归属地"
+//	@Param			status			query		string				false	"状态"
+//	@Param			userType		query		int					false	"用户类型"
+//	@Success		200				{object}	response.Response	"{"code": 200, "data": [...]}"
+//	@Router			/admin/user/list [get]
+//	@Security		WanBlog
 func (a AdminApi) ListUser(c *gin.Context) {
-	a.MakeContext(c)
-
-	var vo blogVO.BaseRequestVO[*blog.User]
-	if a.BindPageFailed(&vo) {
+	s := service.Admin{}
+	req := dto.PageAdminReq{}
+	if a.MakeContextChain(c, &s.Service, &req) == nil {
 		return
 	}
 
-	db_user.ListUser(&vo)
+	p := actions.GetPermissionFromContext(c)
+	var page vo.Page[blog.User]
+	page.Set(req.Pagination)
 
-	a.OK(&vo)
+	if a.IsError(s.Page(&req, p, &page)) {
+		return
+	}
+
+	a.OK(&page)
 }
 
-// ChangeUserStatus
-// 修改用户状态
-// flag = true：解禁
-// flag = false：封禁
+// ChangeUserStatus 修改用户状态
 func (a AdminApi) ChangeUserStatus(c *gin.Context) {
-	a.MakeContext(c)
 
-	var userId int
-	if a.IntFailed(&userId, "userId") {
-		return
-	}
-	var userStatus bool
-	if a.BoolFailed(&userStatus, "flag") {
+	s := service.Admin{}
+	req := dto.SaveUserReq{}
+	if a.MakeContextChain(c, &s.Service, &req) == nil {
 		return
 	}
 
-	db_user.UpdateUserStatus(userId, userStatus)
-
-	logout(userId)
-
-	a.OK()
-}
-
-func logout(userId int) {
-	var userIdStr = utils.IntToString(userId)
-	deleteTokenCache(blog_const.ADMIN_TOKEN + userIdStr)
-	deleteTokenCache(blog_const.USER_TOKEN + userIdStr)
-}
-
-func deleteTokenCache(key string) {
-	if get, b := cache.GetString(key); b {
-		cache.Delete(key)
-		cache.Delete(get)
+	if a.IsError(s.UpdateUserStatus(req.UserId, req.UserStatus)) {
+		return
 	}
+
+	if req.UserStatus == false {
+		user.RemoveToken(c)
+	}
+
+	a.OK(req.GetId())
 }
 
 // ChangeUserAdmire 修改用户赞赏
 func (a AdminApi) ChangeUserAdmire(c *gin.Context) {
-	a.MakeContext(c)
-	var userId int
-	if a.IntFailed(&userId, "userId") {
-		return
-	}
-	var admire string
-	if a.StringFailed(&admire, "admire") {
+	s := service.Admin{}
+	req := dto.SaveUserReq{}
+	if a.MakeContextChain(c, &s.Service, &req) == nil {
 		return
 	}
 
-	db_user.UpdateAdmire(userId, admire)
+	if a.IsError(s.UpdateUserAdmire(req.UserId, req.Admire)) {
+		return
+	}
 
-	a.OK()
+	err := rocksCache.DeleteAdmire()
+	if err != nil {
+		a.Logger.Errorf("DeleteAdmire error: %s", err)
+	}
+
+	a.OK(req.GetId())
 }
 
 // ChangeUserType 修改用户类型
 func (a AdminApi) ChangeUserType(c *gin.Context) {
-	a.MakeContext(c)
-	var userId int
-	if a.IntFailed(&userId, "userId") {
-		return
-	}
-	var userType int
-	if a.IntFailed(&userType, "userType") {
+	s := service.Admin{}
+	req := dto.SaveUserReq{}
+	if a.MakeContextChain(c, &s.Service, &req) == nil {
 		return
 	}
 
-	if userType < 0 || userType > 2 {
+	if req.UserType < 0 || req.UserType > 2 {
 		a.CodeError(r.PARAMETER_ERROR)
 		return
 	}
 
-	db_user.UpdateUserType(userId, userType)
+	if a.IsError(s.UpdateUserType(req.UserId, req.UserType)) {
+		return
+	}
+	err := rocksCache.DeleteAdmire()
+	if err != nil {
+		a.Logger.Errorf("DeleteAdmire error: %s", err)
+	}
 
-	logout(userId)
+	user.RemoveToken(c)
 
-	a.OK()
+	a.OK(req.GetId())
 }
 
 // GetAdminWebInfo 获取网站信息
 func (a AdminApi) GetAdminWebInfo(c *gin.Context) {
-	a.MakeContext(c)
-	list, err := db_web_info.List()
+	//s := service.Admin{}
+	if a.MakeContextChain(c, nil, nil) == nil {
+		return
+	}
+
+	webInfo, err := rocksCache.GetWebInfo()
 	if err != nil {
-		a.ErrorInternal(err.Error())
+		a.Logger.Errorf("GetAdminWebInfo error: %s", err)
 		return
 	}
 
-	a.OK(list[0])
+	a.OK(webInfo[0])
 }
 
-// ListUserArticle 用户查询文章
-func (a AdminApi) ListUserArticle(c *gin.Context) {
-	a.MakeContext(c)
-	var vo blogVO.BaseRequestVO[*blogVO.ArticleVO]
-	if a.BindPageFailed(&vo) {
+// ListArticle 查询文章
+func (a AdminApi) ListArticle(c *gin.Context) {
+	s := service.Article{}
+	req := dto.PageArticleReq{}
+	if a.MakeContextChain(c, &s.Service, &req) == nil {
 		return
 	}
 
-	db_article.ListAdminArticle(&vo, false)
+	p := actions.GetPermissionFromContext(c)
+	var page vo.Page[vo.ArticleVO]
+	page.Set(req.Pagination)
 
-	a.OK(&vo)
-}
-
-// ListBossArticle Boss查询文章
-func (a AdminApi) ListBossArticle(c *gin.Context) {
-	a.MakeContext(c)
-	var vo blogVO.BaseRequestVO[*blogVO.ArticleVO]
-	if a.BindPageFailed(&vo) {
+	userId, userName := user.GetUserInfo(c)
+	if a.IsError(s.ListAdminArticle(c, &req, p, &page, user.IsAdmin(c), userId, userName)) {
 		return
 	}
 
-	db_article.ListAdminArticle(&vo, true)
-
-	a.OK(&vo)
+	a.OK(&page)
 }
 
 // ChangeArticleStatus Boss查询文章
 func (a AdminApi) ChangeArticleStatus(c *gin.Context) {
-	a.MakeContext(c)
-	var articleId int
-	if a.IntFailed(&articleId, "articleId") {
+	s := service.Article{}
+	req := dto.ChangeArticleReq{}
+	if a.MakeContextChain(c, &s.Service, &req) == nil {
 		return
 	}
 
-	var viewStatus, commentStatus, recommendStatus bool
-	viewStatusExist := a.BoolFailed(&viewStatus, "viewStatus")
-	commentStatusExist := a.BoolFailed(&commentStatus, "commentStatus")
-	recommendStatusExist := a.BoolFailed(&recommendStatus, "recommendStatus")
+	userId := user.GetUserId32(c)
+	if a.IsError(s.ChangeArticleStatus(&req, userId)) {
+		return
+	}
 
-	db_article.ChangeArticleStatus(articleId, viewStatus, commentStatus, recommendStatus,
-		viewStatusExist, commentStatusExist, recommendStatusExist)
-	a.OK()
+	a.OK(req.GetId())
 }
 
 // GetArticleByIdForUser 查询文章
 func (a AdminApi) GetArticleByIdForUser(c *gin.Context) {
-	a.MakeContext(c)
-	var id int
-	if a.IntFailed(&id, "id") {
+	s := service.Article{}
+	req := dto.ChangeArticleReq{}
+	if a.MakeContextChain(c, &s.Service, &req) == nil {
 		return
 	}
-	a.OK(db_article.GetArticleByIdForUser(id))
+
+	userId := user.GetUserId32(c)
+	data := vo.ArticleVO{}
+	if a.IsError(s.GetArticleByIdForUser(req.ArticleId, userId, &data)) {
+		return
+	}
+
+	a.OK(data)
 }
 
-// UserDeleteComment 作者删除评论
-func (a AdminApi) UserDeleteComment(c *gin.Context) {
-	a.MakeContext(c)
-	var id int
-	if a.IntFailed(&id, "id") {
+// DeleteComment 删除评论
+func (a AdminApi) DeleteComment(c *gin.Context) {
+	s := service.Comment{}
+	req := dto.DelCommentReq{}
+	if a.MakeContextChain(c, &s.Service, &req) == nil {
 		return
 	}
-	a.DoneApiErr(db_comment.UserDeleteComment(id))
+
+	var err error
+	if a.IsAdmin() {
+		err = s.BossDeleteComment(&req)
+	} else {
+		userId := user.GetUserId32(c)
+		err = s.UserDeleteComment(&req, userId)
+	}
+	if a.IsError(err) {
+		return
+	}
+
+	a.OKMsg(req.GetId(), constant.DBDeleteOK)
 }
 
-// BossDeleteComment Boss删除评论
-func (a AdminApi) BossDeleteComment(c *gin.Context) {
-	a.MakeContext(c)
-	var id int
-	if a.IntFailed(&id, "id") {
-		return
-	}
-	db_comment.Delete(id)
-	a.OK()
-}
-
-// ListUserComment 用户查询评论
-func (a AdminApi) ListUserComment(c *gin.Context) {
-	a.MakeContext(c)
-	var vo blogVO.BaseRequestVO[*blog.Comment]
-	if a.BindPageFailed(&vo) {
+// ListComment 查询评论
+func (a AdminApi) ListComment(c *gin.Context) {
+	s := service.Comment{}
+	req := dto.PageAdminCommentReq{}
+	if a.MakeContextChain(c, &s.Service, &req) == nil {
 		return
 	}
 
-	db_comment.ListAdminComment(&vo, false)
+	p := actions.GetPermissionFromContext(c)
+	var page vo.Page[blog.Comment]
+	page.Set(req.Pagination)
 
-	a.OK(&vo)
-}
-
-// ListBossComment Boss查询评论
-func (a AdminApi) ListBossComment(c *gin.Context) {
-	a.MakeContext(c)
-	var vo blogVO.BaseRequestVO[*blog.Comment]
-	if a.BindPageFailed(&vo) {
+	if a.IsError(s.PageAdmin(c, &req, p, &page, user.IsAdmin(c))) {
 		return
 	}
 
-	db_comment.ListAdminComment(&vo, true)
-
-	a.OK(&vo)
+	a.OK(&page)
 }
 
 // ListBossTreeHole Boss查询树洞
 func (a AdminApi) ListBossTreeHole(c *gin.Context) {
-	a.MakeContext(c)
-	var vo blogVO.BaseRequestVO[*blog.TreeHole]
-	if a.BindPageFailed(&vo) {
+	s := service.TreeHole{}
+	req := dto.PageTreeHoleReq{}
+	if a.MakeContextChain(c, &s.Service, &req) == nil {
 		return
 	}
 
-	db_tree_hole.ListBossTreeHole(&vo)
+	p := actions.GetPermissionFromContext(c)
+	var page vo.Page[blog.TreeHole]
+	page.Set(req.Pagination)
 
-	a.OK(&vo)
+	if a.IsError(s.Page(&req, p, &page)) {
+		return
+	}
+
+	a.OK(&page)
 }

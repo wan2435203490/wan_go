@@ -7,10 +7,10 @@ import (
 	"gorm.io/gorm/utils"
 	"net/smtp"
 	"sync/atomic"
+	"wan_go/internal/blog/service/dto"
 	"wan_go/pkg/common/config"
 	"wan_go/pkg/common/constant/blog_const"
 	"wan_go/pkg/common/log"
-	blogVO "wan_go/pkg/vo/blog"
 )
 
 var (
@@ -39,7 +39,7 @@ var (
 	 * 6. 网站名称
 	 */
 	MailText = "<div style=\"font-family: serif;line-height: 22px;padding: 30px\">\n" +
-		"    <div style=\"display: flex;justify-content: center;width: 100%%;max-width: 900px;background-image: url('" + config.Config.Qiniu.Url + "webBackgroundImage/Sara11667042705239112');background-size: cover;border-radius: 10px\"></div>\n" +
+		"    <div style=\"display: flex;justify-content: center;width: 100%%;max-width: 900px;background-image: url('" + config.Config.Qiniu.Url + "webBackground/8.webp');background-size: cover;border-radius: 10px\"></div>\n" +
 		"    <div style=\"margin-top: 20px;display: flex;flex-direction: column;align-items: center\">\n" +
 		"        <div style=\"margin: 10px auto 20px;text-align: center\">\n" +
 		"            <div style=\"line-height: 32px;font-size: 26px;font-weight: bold;color: #000000\">\n" +
@@ -116,24 +116,24 @@ func SendMail(to []string, subject, text string) {
 	}
 }
 
-func SendSimpleCommentMail(vo *blogVO.CommentVO, mails []string, fromName, toName, webName string,
+func SendSimpleCommentMail(d *dto.SaveCommentReq, mails []string, fromName, toName, webName string,
 	sendCount *atomic.Int32, sendSuccess func()) {
-	SendCommentMail(vo, mails, "", fromName, toName, webName, "", sendCount, sendSuccess)
+	SendCommentMail(d, mails, "", fromName, toName, webName, "", sendCount, sendSuccess)
 }
 
-func SendCommentMail(vo *blogVO.CommentVO, mails []string, articleTitle, fromName, toName, webName, mailContent string,
+func SendCommentMail(d *dto.SaveCommentReq, mails []string, articleTitle, fromName, toName, webName, mailContent string,
 	sendCount *atomic.Int32, sendSuccess func()) {
 
 	sourceName := ""
-	if vo.Type == blog_const.COMMENT_TYPE_ARTICLE.Code {
+	if d.Type == blog_const.COMMENT_TYPE_ARTICLE.Code {
 		sourceName = articleTitle
 	}
 
 	commentMail := getCommentMail(
-		vo.Type,
+		d.Type,
 		sourceName,
 		fromName,
-		vo.CommentContent,
+		d.CommentContent,
 		toName,
 		webName,
 		mailContent,

@@ -2,32 +2,15 @@ package r
 
 import "wan_go/pkg/utils"
 
-const (
-	SuccessStatus = 0
-	ErrorStatus   = -1
-)
-
-type Response struct {
-	Code    int    `json:"code"`
-	Status  int    `json:"status"`
-	Message string `json:"message"`
-	Data    any    `json:"data"`
-}
-
-//type response struct {
-//	Response
-//	Data any `json:"data"`
-//}
-
 // Pagination 分页
 // Current == Offset
 // Size == Limit
 // Desc 、 Column  Order By
 type Pagination struct {
-	Current int  `form:"current" json:"current"`
-	Size    int  `form:"size" json:"size"`
-	Total   int  `form:"total" json:"total"`
-	Desc    bool `form:"desc" json:"desc"`
+	Current int   `form:"current" json:"current"`
+	Size    int   `form:"size" json:"size"`
+	Total   int64 `form:"total" json:"total"`
+	Desc    bool  `form:"desc" json:"desc"`
 	//排序的column 需要多个排序的话就将Desc和Column抽象出来 默认按主键排序
 	Column string `form:"column" json:"column"`
 }

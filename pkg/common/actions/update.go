@@ -2,15 +2,14 @@ package actions
 
 import (
 	"net/http"
+	log "wan_go/core/logger"
+	"wan_go/pkg/common/dto"
+	"wan_go/pkg/common/models"
+	"wan_go/sdk/pkg"
+	"wan_go/sdk/pkg/jwtauth/user"
+	"wan_go/sdk/pkg/response"
 
 	"github.com/gin-gonic/gin"
-	log "github.com/go-admin-team/go-admin-core/logger"
-	"github.com/go-admin-team/go-admin-core/sdk/pkg"
-	"github.com/go-admin-team/go-admin-core/sdk/pkg/jwtauth/user"
-	"github.com/go-admin-team/go-admin-core/sdk/pkg/response"
-
-	"go-admin/common/dto"
-	"go-admin/common/models"
 )
 
 // UpdateAction 通用更新动作

@@ -288,7 +288,7 @@ CREATE TABLE `im_chat_user_group_message` (
 -- 第三步：执行初始化语句
 
 INSERT INTO `user` (`id`, `user_name`, `password`, `phone_number`, `email`, `user_status`, `gender`, `open_id`, `avatar`, `introduction`, `user_type`, `update_by`, `admire`)
-VALUES(1, 'wan', 'a078b88157431887516448c823118d83', '', '', 1, 1, '', '', '', 0, 'Sara', '');
+VALUES(1, 'wan', 'a078b88157431887516448c823118d83', '', '', 1, 1, '', '', '', 0, 'Wan', '');
 
 INSERT INTO `web_info` (`id`, `web_name`, `web_title`, `notices`, `footer`, `background_image`, `avatar`, `random_avatar`, `random_name`, `random_cover`, `waifu_json`, `status`)
 VALUES(1, 'wan', '小世界', '[]', '多情自古空余恨，此恨绵绵无绝期。', '', '', '[]', '[]', '[]', '{}', 1);

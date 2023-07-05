@@ -23,8 +23,8 @@ var (
 	SORT_TYPE_BAR    = &PoetryEnum{0, "导航栏分类"}
 	SORT_TYPE_NORMAL = &PoetryEnum{1, "普通分类"}
 
-	// USER_TYPE_ADMIN
-	USER_TYPE_ADMIN = &PoetryEnum{0, "站长"}
-	USER_TYPE_DEV   = &PoetryEnum{1, "管理员"}
-	USER_TYPE_USER  = &PoetryEnum{2, "用户"}
+	// UserRoleAdmin UserRole  roleId
+	UserRoleAdmin    = &PoetryEnum{1, "站长"}
+	UserRoleDev      = &PoetryEnum{2, "管理员"}
+	UserRoleOperator = &PoetryEnum{3, "用户"}
 )

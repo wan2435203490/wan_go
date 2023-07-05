@@ -2,10 +2,10 @@ package token
 
 import (
 	"github.com/golang-jwt/jwt/v4"
-	"wan_go/common/config"
-	"wan_go/common/constant"
-	"wan_go/common/utils"
 	"time"
+	"wan_go/pkg/common/config"
+	"wan_go/pkg/common/constant"
+	"wan_go/pkg/utils"
 )
 
 type Claims struct {
@@ -28,9 +28,9 @@ func BuildClaims(userId string, day int64) Claims {
 }
 
 func CreateToken(userId string) (string, error) {
-	claims := BuildClaims(userId, config.Config.TokenPolicy.JwtExpire)
+	claims := BuildClaims(userId, config.Config.Jwt.Expire)
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString([]byte(config.Config.TokenPolicy.JwtSecret))
+	tokenString, err := token.SignedString([]byte(config.Config.Jwt.Secret))
 	if err != nil {
 		return "", err
 	}
@@ -40,7 +40,7 @@ func CreateToken(userId string) (string, error) {
 
 func secret() jwt.Keyfunc {
 	return func(token *jwt.Token) (interface{}, error) {
-		return []byte(config.Config.TokenPolicy.JwtSecret), nil
+		return []byte(config.Config.Jwt.Secret), nil
 	}
 }
 

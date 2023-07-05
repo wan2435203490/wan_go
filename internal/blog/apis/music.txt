@@ -1,0 +1,36 @@
+QQ音乐
+
+/////第一种方法
+0.获取随机音乐的mid
+https://apis.jxcxin.cn/api/qqrandommusic?type=json
+{
+"code": 200,
+"msg": "success",
+"data": {
+"songname": "那一天",
+"albumname": "那一天",
+"author": "鞠婧祎",
+"url": "https://aqqmusic.tc.qq.com/amobile.music.tc.qq.com/C400002XeKpE1mxtUH.m4a?guid=undefined&vkey=2A3FC6C8F3A9929A9AB37FA150672B871D294FA75EA4EDD2D950EAD98708D55DF1BB50A90570FA851165C495FAF7122AFC241CCD6D32614B&uin=&fromtag=123032"
+}
+}
+
+1.获取url 2获取的url不稳定 可以对比
+http://localhost:3300/song/url?id=002B2EAA3brD5b
+{
+"data": "http://isure.stream.qqmusic.qq.com/M500002IWr0W3UEPKC.mp3?guid=6716053&vkey=71DA4F288A6F5412C471371A1447BA12381CE30FCF16E129E8E14B4BA3AF65E67DB2E4896673CE634C6933E405DEC20159F8A866C5A45AB9&uin=&fromtag=120042",
+"result": 100
+}
+
+2.获取pic author albumname
+https://apis.jxcxin.cn/api/qqmusic?url=https://y.qq.com/n/ryqq/songDetail/002fTJDE2kl7DS
+{
+"code": 200,
+"msg": "获取成功",
+"albumname": "难相逢",
+"author": "en",
+"pic": "https://y.gtimg.cn/music/photo_new/T002R150x150M000000z1ObD1XOpQT_1.jpg?max_age=2592000",
+"url": "https://aqqmusic.tc.qq.com/amobile.music.tc.qq.com/C400002fTJDE2kl7DS.m4a?guid=undefined&vkey=CC9BDED1874AD336D136924FCC1A6788E079814165F490E223F2339699CB4F8389480931B024A16157DD89FC024AB0D6FD5D6C203F7F374B&uin=&fromtag=123032"
+}
+
+////第二种方法
+不经过上面的1，解析0中的mid，然后调用2

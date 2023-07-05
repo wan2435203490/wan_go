@@ -6,7 +6,7 @@ import (
 	"golang.org/x/time/rate"
 	"net/http"
 	"sync"
-	r "wan_go/pkg/common/response"
+	"wan_go/sdk/pkg/response"
 )
 
 var rateLimiterMap sync.Map
@@ -24,11 +24,13 @@ func WithLimit(c *gin.Context) {
 	}
 
 	if !limiter.(*rate.Limiter).Allow() {
-		res := &r.Response{}
-		res.Message = "请求过于频繁"
-		res.Status = r.ErrorStatus
-		res.Code = http.StatusInternalServerError
-		c.AbortWithStatusJSON(http.StatusTooManyRequests, res)
+
+		response.Error(c, http.StatusInternalServerError, nil, "请求过于频繁")
+		//res := &r.Response{}
+		//res.Message = "请求过于频繁"
+		//res.Status = r.ErrorStatus
+		//res.Captcha = http.StatusInternalServerError
+		//c.AbortWithStatusJSON(http.StatusTooManyRequests, res)
 		return
 	}
 }

@@ -4,21 +4,30 @@ import (
 	"github.com/gin-gonic/gin"
 	"wan_go/internal/blog/apis"
 	"wan_go/pkg/common/middleware"
+	jwt "wan_go/sdk/pkg/jwtauth"
 )
 
 func init() {
 	routerCheckRole = append(routerCheckRole, resourceRouter)
 }
 
-func resourceRouter(v1 *gin.RouterGroup) {
+func resourceRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddleware) {
 	api := apis.ResourceApi{}
-	r := v1.Group("/resource").Use(middleware.LoginCheck)
+	r := v1.Group("/resource")
 	{
-		r.POST("/saveResource", api.SaveResource)                //2
-		r.POST("/deleteResource", api.DeleteResource)            //0
-		r.GET("/getResourceInfo", api.GetResourceInfo)           //0
-		r.GET("/getImageList", api.GetImageList)                 //2
-		r.GET("/listResource", api.ListResource)                 //0
-		r.GET("/changeResourceStatus", api.ChangeResourceStatus) //0
+		auth0 := r.Group("").Use(authMiddleware.MiddlewareFunc()).Use(middleware.AuthCheckRole(1))
+		{
+			auth0.DELETE("", api.DeleteResource)
+			auth0.GET("", api.GetResourceInfo)
+			auth0.GET("/list", api.ListResource)
+			auth0.PUT("/changeResourceStatus", api.ChangeResourceStatus)
+		}
+
+		auth3 := r.Group("").Use(authMiddleware.MiddlewareFunc()).Use(middleware.AuthCheckRole(3))
+		{
+			auth3.POST("", api.InsertResource)
+			auth3.GET("/getImageList", api.GetImageList)
+		}
+
 	}
 }

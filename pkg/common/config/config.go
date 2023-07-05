@@ -20,15 +20,29 @@ var Config config
 type config struct {
 	Version string `yaml:"version"`
 
+	Application struct {
+		ReadTimeout   int
+		WriterTimeout int
+		Host          string
+		Port          int64
+		Name          string
+		Mode          string `yaml:"mode"`
+		EnableDP      bool   `yaml:"enableDP"`
+	} `yaml:"application"`
+
 	User struct {
 		CaptchaFormat string `yaml:"captchaFormat"`
 	} `yaml:"user"`
 
 	Qiniu struct {
-		Url       string `yaml:"url"`
-		Bucket    string `yaml:"bucket"`
-		AccessKey string `yaml:"accessKey"`
-		SecretKey string `yaml:"secretKey"`
+		Url               string `yaml:"url"`
+		Bucket            string `yaml:"bucket"`
+		AccessKey         string `yaml:"accessKey"`
+		SecretKey         string `yaml:"secretKey"`
+		ThumbAvatarsCount int    `yaml:"thumbAvatarsCount"`
+		ThumbAvatarPrefix string `yaml:"thumbAvatarPrefix"`
+		RandomCoverCount  int    `yaml:"randomCoverCount"`
+		RandomCoverPrefix string `yaml:"randomCoverPrefix"`
 	} `yaml:"qiniu"`
 
 	Mail struct {
@@ -156,10 +170,10 @@ type config struct {
 		Key  string `yaml:"key"`
 	}
 
-	TokenPolicy struct {
-		JwtSecret string `yaml:"jwt_secret"`
-		JwtExpire int64  `yaml:"jwt_expire"`
-	}
+	Jwt struct {
+		Secret string `yaml:"secret"`
+		Expire int64  `yaml:"expire"`
+	} `yaml:"jwt"`
 
 	Websocket struct {
 		Port             []string `yaml:"port"`
@@ -210,7 +224,8 @@ type config struct {
 			SenderAuthorizationCode string `yaml:"senderAuthorizationCode"`
 			SmtpAddr                string `yaml:"smtpAddr"`
 			SmtpPort                int    `yaml:"smtpPort"`
-		}
+		} `yaml:"mail"`
+		RandomNames []string `yaml:"randomNames"`
 	}
 
 	Prometheus struct {
@@ -256,8 +271,10 @@ func unmarshalConfig(config interface{}, configName string) {
 			panic(err.Error())
 		}
 	} else {
-		dir, _ := os.Getwd()
-		bytes, err := os.ReadFile(fmt.Sprintf("%s/config/%s", dir, configName))
+		//dir, _ := os.Getwd()
+		//path := fmt.Sprintf("%s/config/%s", dir, configName)
+		path := fmt.Sprintf("%s/config/%s", Root, configName)
+		bytes, err := os.ReadFile(path)
 		if err != nil {
 			panic(err.Error() + configName)
 		}

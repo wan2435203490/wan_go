@@ -17,8 +17,8 @@ const (
 
 // ResolveSearchQuery 解析
 /**
- * 	exact / iexact 等于
- * 	contains / icontains 包含
+ * 	eq  等于
+ * 	like / ilike 包含 和in区分
  *	gt / gte 大于 / 大于等于
  *	lt / lte 小于 / 小于等于
  *	startswith / istartswith 以…起始
@@ -33,6 +33,12 @@ func ResolveSearchQuery(driver string, q interface{}, condition Condition) {
 	var tag string
 	var ok bool
 	var t *resolveSearchTag
+	//if qType.Kind() == reflect.Pointer {
+	//	return
+	//}
+	if qType.Kind() != reflect.Struct {
+		return
+	}
 	for i := 0; i < qType.NumField(); i++ {
 		tag, ok = "", false
 		tag, ok = qType.Field(i).Tag.Lookup(FromQueryTag)
@@ -62,9 +68,9 @@ func ResolveSearchQuery(driver string, q interface{}, condition Condition) {
 				t.On[1],
 			))
 			ResolveSearchQuery(driver, qValue.Field(i).Interface(), join)
-		case "exact", "iexact":
+		case "eq":
 			condition.SetWhere(fmt.Sprintf("`%s`.`%s` = ?", t.Table, t.Column), []interface{}{qValue.Field(i).Interface()})
-		case "contains", "icontains":
+		case "like", "ilike":
 			//fixme mysql不支持ilike
 			if driver == Postgres && t.Type == "icontains" {
 				condition.SetWhere(fmt.Sprintf("`%s`.`%s` ilike ?", t.Table, t.Column), []interface{}{"%" + qValue.Field(i).String() + "%"})

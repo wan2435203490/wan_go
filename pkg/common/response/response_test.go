@@ -27,7 +27,7 @@ package r
 //
 //	res.Message = http.StatusText(http.StatusOK)
 //	res.Status = http.StatusOK
-//	res.Code = SuccessStatus
+//	res.Captcha = SuccessStatus
 //
 //	return res
 //}
@@ -37,7 +37,7 @@ package r
 //	res := &response{}
 //	res.Message = utils.IfThen(len(msg) > 0, msg, http.StatusText(httpStatus)).(string)
 //	res.Status = httpStatus
-//	res.Code = ErrorStatus
+//	res.Captcha = ErrorStatus
 //
 //	return res
 //}

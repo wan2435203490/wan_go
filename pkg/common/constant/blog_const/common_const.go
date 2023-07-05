@@ -2,7 +2,7 @@ package blog_const
 
 import "time"
 
-var (
+const (
 	ADMIN_USER_ID        = 1
 	USER_TOKEN           = "user_token_"
 	ADMIN_TOKEN          = "admin_token_"
@@ -69,6 +69,11 @@ var (
 	 * 树洞一次最多查询条数
 	 */
 	TREE_HOLE_COUNT = 200
+
+	/**
+	家庭信息默认查询条数
+	*/
+	FAMILY_COUNT = 10
 
 	/**
 	 * 顶层评论ID

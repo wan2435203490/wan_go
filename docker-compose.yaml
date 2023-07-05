@@ -1,4 +1,4 @@
-#docker-compose's version
+#docker-compose.yml's version
 version: "3"
 services:
 #  mysql:
@@ -15,14 +15,32 @@ services:
 #    restart: always
 #    command: mysql -h 127.0.0.1 -p123456 -e 'create database landlord default charset utf8'
 
-  landlord:
-    image: landlord
-    container_name: landlord
+#  redis:
+#    image: redis
+#    platform: linux/arm64/v8
+#    ports:
+#      - 16379:6379
+#    container_name: redis
+#    volumes:
+#      - ${DATA_DIR}/components/redis/data:/data
+#      #redis config file
+#      - ${DATA_DIR}/components/redis/config/redis.conf:/usr/local/redis/config/redis.conf
+#    environment:
+#      TZ: Asia/Shanghai
+#    restart: always
+#    sysctls:
+#      net.core.somaxconn: 1024
+#    command: redis-server --requirepass ${PASSWORD} --appendonly yes
+
+  blog:
+    image: blog
+    container_name: blog0
     volumes:
       - ./config/config.yaml:/wan_goconfig/config.yaml
     restart: always
 #    depends_on:
 #      - mysql
+#      - redis
     #windows or mac: use host.docker.internal instead of 127.0.0.1
     #linux: use network_mode: "host"
     network_mode: "host"

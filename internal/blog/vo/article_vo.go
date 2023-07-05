@@ -1,4 +1,4 @@
-package blog
+package vo
 
 import (
 	"time"
@@ -20,13 +20,13 @@ type ArticleVO struct {
 	RecommendStatus bool      `json:"recommendStatus"`
 	Password        string    `json:"password"`
 	ViewStatus      bool      `json:"viewStatus"`
-	CreatedAt       time.Time `json:"createTime"`
+	CreatedAt       time.Time `json:"createdAt"`
 	UpdatedAt       time.Time `json:"updateTime"`
 	UpdateBy        string    `json:"updateBy"`
 	SortId          int32     `json:"sortId" vd:"$>0; msg:'文章分类不能为空'"`
 	LabelId         int32     `json:"labelId" vd:"$>0; msg:'文章标签不能为空'"`
 	// 需要查询封装
-	CommentCount int         `json:"commentCount"`
+	CommentCount int64       `json:"commentCount"`
 	UserName     string      `json:"username"`
 	Sort         *blog.Sort  `json:"sort"`
 	Label        *blog.Label `json:"label"`

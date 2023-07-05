@@ -1,8 +1,6 @@
 package locker
 
 import (
-	"time"
-
 	"github.com/bsm/redislock"
 	"github.com/go-redis/redis/v7"
 )
@@ -24,8 +22,9 @@ func (Redis) String() string {
 }
 
 func (r *Redis) Lock(key string, ttl int64, options *redislock.Options) (*redislock.Lock, error) {
-	if r.mutex == nil {
-		r.mutex = redislock.New(r.client)
-	}
-	return r.mutex.Obtain(key, time.Duration(ttl)*time.Second, options)
+	//if r.mutex == nil {
+	//	r.mutex = redislock.New(r.client)
+	//}
+	//return r.mutex.Obtain(key, time.Duration(ttl)*time.Second, options)
+	return nil, nil
 }

@@ -1,6 +1,6 @@
 package handler
 
-import "go-admin/common/models"
+//import "go-admin/common/models"
 
 type SysRole struct {
 	RoleId    int    `json:"roleId" gorm:"primaryKey;autoIncrement"` // 角色编码
@@ -15,8 +15,8 @@ type SysRole struct {
 	Params    string `json:"params" gorm:"-"`
 	MenuIds   []int  `json:"menuIds" gorm:"-"`
 	DeptIds   []int  `json:"deptIds" gorm:"-"`
-	models.ControlBy
-	models.ModelTime
+	//models.ControlBy
+	//models.ModelTime
 }
 
 func (SysRole) TableName() string {

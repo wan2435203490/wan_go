@@ -2,16 +2,15 @@ package actions
 
 import (
 	"errors"
+	"gorm.io/gorm"
 	"net/http"
+	log "wan_go/core/logger"
+	"wan_go/pkg/common/dto"
+	"wan_go/pkg/common/models"
+	"wan_go/sdk/pkg"
+	"wan_go/sdk/pkg/response"
 
 	"github.com/gin-gonic/gin"
-	log "github.com/go-admin-team/go-admin-core/logger"
-	"github.com/go-admin-team/go-admin-core/sdk/pkg"
-	"github.com/go-admin-team/go-admin-core/sdk/pkg/response"
-	"gorm.io/gorm"
-
-	"go-admin/common/dto"
-	"go-admin/common/models"
 )
 
 // IndexAction 通用查询动作
@@ -42,7 +41,8 @@ func IndexAction(m models.ActiveRecord, d dto.Index, f func() interface{}) gin.H
 		err = db.WithContext(c).Model(object).
 			Scopes(
 				dto.MakeCondition(req.GetNeedSearch()),
-				dto.Paginate(req.GetPageSize(), req.GetPageIndex()),
+				//todo
+				//dto.Paginate(req.GetPageSize(), req.GetPageIndex()),
 				Permission(object.TableName(), p),
 			).
 			Find(list).Limit(-1).Offset(-1).

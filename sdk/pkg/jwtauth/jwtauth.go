@@ -3,16 +3,15 @@ package jwtauth
 import (
 	"crypto/rsa"
 	"errors"
-	"io/ioutil"
 	"net/http"
+	"os"
 	"strings"
 	"time"
+	"wan_go/pkg/common/constant"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
 )
-
-const JwtPayloadKey = "JWT_PAYLOAD"
 
 type MapClaims map[string]interface{}
 
@@ -20,7 +19,7 @@ type MapClaims map[string]interface{}
 // is returned. On success, the wrapped middleware is called, and the userID is made available as
 // c.Get("userID").(string).
 // Users can get a token by posting a json request to LoginHandler. The token then needs to be passed in
-// the Authentication header. Example: Authorization:Bearer XXX_TOKEN_XXX
+// the Authentication header. Example: Authorization:WanBlog XXX_TOKEN_XXX
 type GinJWTMiddleware struct {
 	// Realm name to display to the db_user. Required.
 	Realm string
@@ -102,7 +101,7 @@ type GinJWTMiddleware struct {
 	// - "cookie:<name>"
 	TokenLookup string
 
-	// TokenHeadName is a string in the header. Default value is "Bearer"
+	// TokenHeadName is a string in the header. Default value is "WanBlog"
 	TokenHeadName string
 
 	// TimeFunc provides the current time. You can override it to use another time value. This is useful for testing or if your server uses a different time zone than your tokens.
@@ -157,10 +156,12 @@ var (
 	ErrMissingAuthenticatorFunc = errors.New("ginJWTMiddleware.Authenticator func is undefined")
 
 	// ErrMissingLoginValues indicates a db_user tried to authenticate without username or password
-	ErrMissingLoginValues = errors.New("missing UserName or Password or Code")
+	ErrMissingLoginValues = errors.New("missing UserName or Password or Captcha")
 
 	// ErrFailedAuthentication indicates authentication failed, could be faulty username or password
-	ErrFailedAuthentication = errors.New("incorrect UserName or Password")
+	//ErrFailedAuthentication = errors.New("incorrect UserName or Password")
+	//用户看不懂鸟语
+	ErrFailedAuthentication = errors.New("用户名或密码不正确")
 
 	// ErrFailedTokenCreation indicates JWT Token failed to create, reason unknown
 	ErrFailedTokenCreation = errors.New("failed to create JWT Token")
@@ -206,29 +207,16 @@ var (
 	// ErrInvalidPubKey indicates the the given public key is invalid
 	ErrInvalidPubKey = errors.New("public key invalid")
 
-	// IdentityKey default identity key
-	IdentityKey = "identity"
-
-	// NiceKey 昵称
-	NiceKey      = "nice"
-	DataScopeKey = "datascope"
-
-	RKey = "r"
-
-	// RoleIdKey 角色id  Old
-	RoleIdKey = "roleid"
-
-	// RoleKey 角色名称  Old
-	RoleKey = "rolekey"
-
-	// RoleNameKey 角色名称  Old
-	RoleNameKey = "rolename"
-
-	// RoleIdKey 部门id
-	DeptId = "deptId"
-
-	// RoleKey 部门名称
-	DeptName = "deptName"
+	// Identity default identity key
+	Identity    = constant.ClaimsIdentity
+	UserName    = constant.ClaimsUserName
+	Avatar      = constant.ClaimsAvatar
+	Password    = constant.ClaimsPassword
+	Email       = constant.ClaimsEmail
+	PhoneNumber = constant.ClaimsPhoneNumber
+	DataScope   = constant.ClaimsDataScope
+	RoleId      = constant.ClaimsRoleId
+	RoleName    = constant.ClaimsRoleName
 )
 
 // New for check error with GinJWTMiddleware
@@ -253,7 +241,7 @@ func (mw *GinJWTMiddleware) readKeys() error {
 }
 
 func (mw *GinJWTMiddleware) privateKey() error {
-	keyData, err := ioutil.ReadFile(mw.PrivKeyFile)
+	keyData, err := os.ReadFile(mw.PrivKeyFile)
 	if err != nil {
 		return ErrNoPrivKeyFile
 	}
@@ -266,7 +254,7 @@ func (mw *GinJWTMiddleware) privateKey() error {
 }
 
 func (mw *GinJWTMiddleware) publicKey() error {
-	keyData, err := ioutil.ReadFile(mw.PubKeyFile)
+	keyData, err := os.ReadFile(mw.PubKeyFile)
 	if err != nil {
 		return ErrNoPubKeyFile
 	}
@@ -303,7 +291,7 @@ func (mw *GinJWTMiddleware) MiddlewareInit() error {
 
 	mw.TokenHeadName = strings.TrimSpace(mw.TokenHeadName)
 	if len(mw.TokenHeadName) == 0 {
-		mw.TokenHeadName = "Bearer"
+		mw.TokenHeadName = "WanBlog"
 	}
 
 	if mw.Authorizator == nil {
@@ -354,15 +342,15 @@ func (mw *GinJWTMiddleware) MiddlewareInit() error {
 	}
 
 	if mw.IdentityKey == "" {
-		mw.IdentityKey = IdentityKey
+		mw.IdentityKey = Identity
 	}
 
-	if mw.IdentityHandler == nil {
-		mw.IdentityHandler = func(c *gin.Context) interface{} {
-			claims := ExtractClaims(c)
-			return claims
-		}
-	}
+	//if mw.IdentityHandler == nil {
+	//	mw.IdentityHandler = func(c *gin.Context) interface{} {
+	//		claims := ExtractClaims(c)
+	//		return claims
+	//	}
+	//}
 
 	if mw.HTTPStatusMessageFunc == nil {
 		mw.HTTPStatusMessageFunc = func(e error, c *gin.Context) string {
@@ -371,7 +359,7 @@ func (mw *GinJWTMiddleware) MiddlewareInit() error {
 	}
 
 	if mw.Realm == "" {
-		mw.Realm = "gin jwt"
+		mw.Realm = "wan jwt"
 	}
 
 	if mw.CookieName == "" {
@@ -402,21 +390,21 @@ func (mw *GinJWTMiddleware) middlewareImpl(c *gin.Context) {
 		return
 	}
 
-	if claims["exp"] == nil {
+	if claims[constant.ClaimsExpire] == nil {
 		mw.unauthorized(c, http.StatusBadRequest, mw.HTTPStatusMessageFunc(ErrMissingExpField, c))
 		return
 	}
 
-	if _, ok := claims["exp"].(float64); !ok {
+	if _, ok := claims[constant.ClaimsExpire].(float64); !ok {
 		mw.unauthorized(c, http.StatusBadRequest, mw.HTTPStatusMessageFunc(ErrWrongFormatOfExp, c))
 		return
 	}
-	if int64(claims["exp"].(float64)) < mw.TimeFunc().Unix() {
+	if int64(claims[constant.ClaimsExpire].(float64)) < mw.TimeFunc().Unix() {
 		mw.unauthorized(c, 6401, mw.HTTPStatusMessageFunc(ErrExpiredToken, c))
 		return
 	}
 
-	c.Set(JwtPayloadKey, claims)
+	c.Set(constant.JWTPayloadKey, claims)
 	identity := mw.IdentityHandler(c)
 
 	if identity != nil {
@@ -440,7 +428,7 @@ func (mw *GinJWTMiddleware) GetClaimsFromJWT(c *gin.Context) (MapClaims, error) 
 	}
 
 	if mw.SendAuthorization {
-		if v, ok := c.Get("JWT_TOKEN"); ok {
+		if v, ok := c.Get("constant.JWTToken"); ok {
 			c.Header("Authorization", mw.TokenHeadName+" "+v.(string))
 		}
 	}
@@ -475,8 +463,8 @@ func (mw *GinJWTMiddleware) LoginHandler(c *gin.Context) {
 		}
 	}
 	expire := mw.TimeFunc().Add(mw.Timeout)
-	claims["exp"] = expire.Unix()
-	claims["orig_iat"] = mw.TimeFunc().Unix()
+	claims[constant.ClaimsExpire] = expire.Unix()
+	claims[constant.ClaimsOriginalIat] = mw.TimeFunc().Unix()
 	tokenString, err := mw.signedString(token)
 
 	if err != nil {
@@ -541,8 +529,8 @@ func (mw *GinJWTMiddleware) RefreshToken(c *gin.Context) (string, time.Time, err
 	}
 
 	expire := mw.TimeFunc().Add(mw.Timeout)
-	newClaims["exp"] = expire.Unix()
-	newClaims["orig_iat"] = mw.TimeFunc().Unix()
+	newClaims[constant.ClaimsExpire] = expire.Unix()
+	newClaims[constant.ClaimsOriginalIat] = mw.TimeFunc().Unix()
 	tokenString, err := mw.signedString(newToken)
 
 	if err != nil {
@@ -584,7 +572,7 @@ func (mw *GinJWTMiddleware) CheckIfTokenExpire(c *gin.Context) (jwt.MapClaims, e
 
 	claims := token.Claims.(jwt.MapClaims)
 
-	origIat := int64(claims["orig_iat"].(float64))
+	origIat := int64(claims[constant.ClaimsOriginalIat].(float64))
 
 	if origIat < mw.TimeFunc().Add(-mw.MaxRefresh).Unix() {
 		return nil, ErrExpiredToken
@@ -605,8 +593,8 @@ func (mw *GinJWTMiddleware) TokenGenerator(data interface{}) (string, time.Time,
 	}
 
 	expire := mw.TimeFunc().UTC().Add(mw.Timeout)
-	claims["exp"] = expire.Unix()
-	claims["orig_iat"] = mw.TimeFunc().Unix()
+	claims[constant.ClaimsExpire] = expire.Unix()
+	claims[constant.ClaimsOriginalIat] = mw.TimeFunc().Unix()
 	tokenString, err := mw.signedString(token)
 	if err != nil {
 		return "", time.Time{}, err
@@ -696,7 +684,7 @@ func (mw *GinJWTMiddleware) ParseToken(c *gin.Context) (*jwt.Token, error) {
 		if mw.usingPublicKeyAlgo() {
 			return mw.pubKey, nil
 		}
-		c.Set("JWT_TOKEN", token)
+		c.Set("constant.JWTToken", token)
 
 		return mw.Key, nil
 	})
@@ -727,7 +715,7 @@ func (mw *GinJWTMiddleware) unauthorized(c *gin.Context, code int, message strin
 
 // ExtractClaims help to extract the JWT claims
 func ExtractClaims(c *gin.Context) MapClaims {
-	claims, exists := c.Get(JwtPayloadKey)
+	claims, exists := c.Get(constant.JWTPayloadKey)
 	if !exists {
 		return make(MapClaims)
 	}
@@ -751,7 +739,7 @@ func ExtractClaimsFromToken(token *jwt.Token) MapClaims {
 
 // GetToken help to get the JWT token string
 func GetToken(c *gin.Context) string {
-	token, exists := c.Get("JWT_TOKEN")
+	token, exists := c.Get("constant.JWTToken")
 	if !exists {
 		return ""
 	}
