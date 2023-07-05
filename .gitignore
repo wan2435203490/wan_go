@@ -1,3 +1,6 @@
 *.log
 *.yaml
 ./volumes
+*.conf
+*.aof
+*.rdb
