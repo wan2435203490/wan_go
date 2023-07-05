@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"regexp"
 	"strings"
+	blogVO "wan_go/internal/blog/vo"
 	"wan_go/pkg/common/cache"
 	"wan_go/pkg/common/constant/blog_const"
 	"wan_go/pkg/common/db"
@@ -13,7 +14,6 @@ import (
 	"wan_go/pkg/common/db/mysql/blog/db_wei_yan"
 	r "wan_go/pkg/common/response"
 	"wan_go/pkg/utils"
-	blogVO "wan_go/pkg/vo/blog"
 )
 
 // 匹配规则// ^1第一位为一// [345789]{1} 后接一位345789 的数字// \\d \d的转义 表示数字 {9} 接9位
@@ -65,8 +65,9 @@ func Register(userIn *blogVO.UserVO) *blogVO.UserVO {
 		return &userOut
 	}
 
-	enc := utils.AesEncryptCrypotJsKey(userIn.Password)
-	userIn.Password = enc
+	jsEncodePwd := userIn.Password
+	dec := utils.AesDecryptCrypotJsKey(userIn.Password)
+	userIn.Password = dec
 
 	var count int64
 	if err := db.Mysql().Model(&blog.User{}).Where("user_name=?", userIn.UserName).Count(&count).Error; err != nil {
@@ -98,10 +99,12 @@ func Register(userIn *blogVO.UserVO) *blogVO.UserVO {
 	user.UserName = userIn.UserName
 	user.PhoneNumber = userIn.PhoneNumber
 	user.Email = userIn.Email
-	user.Password = utils.Md5(userIn.Password)
+	//user.Password = utils.Md5(userIn.Password)
+	user.Password = userIn.Password
+	user.CrypotJsText = jsEncodePwd
 
 	if utils.IsEmpty(user.Avatar) {
-		//todo
+		//todo 七牛云头像random
 		//userOut.Avatar = randomavatar
 	}
 
@@ -159,10 +162,17 @@ func Login(account string, password string, isAdmin bool) *blogVO.UserVO {
 
 	var err error
 	password = utils.AesDecryptCrypotJsKey(password)
-	password = utils.Md5(password)
+	//password = utils.Md5(password)
+
+	//var user blog.User
+	//if err = db.Mysql().Debug().Where("password = @password and (user_name = @account or email = @account or phone_number = @account)",
+	//	sql.Named("password", password), sql.Named("account", account)).First(&user).Error; err != nil {
+	//	userVO.Msg = "账号/密码错误，请重新输入！"
+	//	return &userVO
+	//}
 
 	var user blog.User
-	if err = db.Mysql().Debug().Where("password = @password and (user_name = @account or email = @account or phone_number = @account)",
+	if err = db.Mysql().Debug().Where("password = @password and email = @account)",
 		sql.Named("password", password), sql.Named("account", account)).First(&user).Error; err != nil {
 		userVO.Msg = "账号/密码错误，请重新输入！"
 		return &userVO
@@ -310,10 +320,11 @@ func UpdateSecretInfo(place, flag, captcha, password string, user *blog.User) *b
 
 	userVO := blogVO.UserVO{}
 	if flag == "1" || flag == "2" {
-		if utils.Md5(password) != user.Password {
-			userVO.Msg = "密码错误！"
-			return &userVO
-		}
+		//token校验了
+		//if utils.Md5(password) != user.Password {
+		//	userVO.Msg = "密码错误！"
+		//	return &userVO
+		//}
 
 		if utils.IsEmpty(captcha) {
 			userVO.Msg = "请输入验证码！"
@@ -359,12 +370,12 @@ func UpdateSecretInfo(place, flag, captcha, password string, user *blog.User) *b
 			return &userVO
 		}
 	case "3":
-		if utils.Md5(place) == user.Password {
-			updateUser.Password = utils.Md5(password)
-		} else {
-			userVO.Msg = "密码错误！"
-			return &userVO
-		}
+		//if utils.Md5(place) == user.Password {
+		//	updateUser.Password = utils.Md5(password)
+		//} else {
+		//	userVO.Msg = "密码错误！"
+		//	return &userVO
+		//}
 	default:
 		break
 	}
@@ -415,7 +426,8 @@ func UpdateForForgetPassword(place, flag, captcha, password string) *r.CodeMsg {
 
 	cache.Delete(key)
 
-	newPassword := utils.Md5(password)
+	//newPassword := utils.Md5(password)
+	newPassword := password
 
 	switch flag {
 	case "1":

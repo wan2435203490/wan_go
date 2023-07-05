@@ -1,12 +1,14 @@
 package main
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"io"
-	//"logs"
 	"os"
+	_ "wan_go/cmd/blog/docs"
 	"wan_go/core/logger"
 	"wan_go/internal/blog/router"
+	"wan_go/pkg/common/config"
 	"wan_go/pkg/common/constant"
 	"wan_go/pkg/common/log"
 )
@@ -21,7 +23,9 @@ func main() {
 
 	router.Init(r)
 
-	logger.Fatal(r.Run(":8081"))
+	//logger.Fatal(r.Run(":8081"))
+	port := config.Config.Blog.Port[0]
+	logger.Fatal(r.Run(fmt.Sprintf(":%d", port)))
 
 	logger.Info("------------------------------------------------------")
 
