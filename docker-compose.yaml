@@ -36,7 +36,7 @@ services:
     image: blog
     container_name: blog0
     volumes:
-      - ./config/config.yaml:/wan_goconfig/config.yaml
+      - ./config/config.yaml:/wan_go/config/config.yaml
     restart: always
 #    depends_on:
 #      - mysql

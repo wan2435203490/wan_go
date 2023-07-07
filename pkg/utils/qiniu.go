@@ -31,8 +31,8 @@ func UploadToQiNiu(file *os.File) {
 	// 配置参数
 	cfg := storage.Config{
 		//Zone:          &storage.ZoneHuanan, // 华南区
-		UseCdnDomains: false,
-		UseHTTPS:      false, // 非https
+		UseCdnDomains: true,
+		UseHTTPS:      true, // 非https
 	}
 	formUploader := storage.NewFormUploader(&cfg)
 
@@ -85,8 +85,8 @@ func UploadImgToQiNiu(file *multipart.FileHeader) (int, string) {
 	// 配置参数
 	cfg := storage.Config{
 		Zone:          &storage.ZoneHuanan, // 华南区
-		UseCdnDomains: false,
-		UseHTTPS:      false, // 非https
+		UseCdnDomains: true,
+		UseHTTPS:      true, // 非https
 	}
 	formUploader := storage.NewFormUploader(&cfg)
 

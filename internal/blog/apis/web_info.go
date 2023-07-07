@@ -88,9 +88,7 @@ func (a WebInfoApi) GetWaifuJson(c *gin.Context) {
 		a.ErrorInternal("webInfo is empty")
 		return
 	}
-	a.OK(webInfo[0].WaifuJson)
-
-	//a.OK("{}")
+	a.Context.String(200, webInfo[0].WaifuJson)
 }
 
 // InsertResourcePath 保存

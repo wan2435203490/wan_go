@@ -41,9 +41,9 @@ func (e *User) Encrypt() (err error) {
 		return
 	}
 
-	//默认注册roleId为2
-	e.UserType = 2
-	e.RoleId = 2
+	//默认注册roleId为3
+	e.UserType = 3
+	e.RoleId = 3
 	var hash []byte
 	if hash, err = bcrypt.GenerateFromPassword([]byte(e.Password), bcrypt.DefaultCost); err != nil {
 		return

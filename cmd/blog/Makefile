@@ -1,7 +1,7 @@
 .PHONY: all build run gotool install clean help
 
-NAME=landlords
-BIN_DIR=./bin/
+NAME=blog_app
+BIN_DIR=../../bin/
 
 
 OS:= $(or $(os),linux)
