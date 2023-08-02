@@ -39,7 +39,7 @@ func (a FamilyApi) InsertFamily(c *gin.Context) {
 	if a.IsAdmin() {
 		err := rocksCache.DeleteAdminFamily()
 		if err != nil {
-			a.Logger.Errorf("rocksCache.DeleteAdminFamily Id: %d, error:%s", req.GetId(), err.Error())
+			a.Logger.Errorf("rocksCache.DeleteAdminFamily ID: %d, error:%s", req.GetId(), err.Error())
 		}
 	}
 
@@ -73,7 +73,7 @@ func (a FamilyApi) UpdateFamily(c *gin.Context) {
 	if user.IsAdmin(c) {
 		err := rocksCache.DeleteAdminFamily()
 		if err != nil {
-			a.Logger.Errorf("rocksCache.DeleteAdminFamily Id: %d, error:%s", req.GetId(), err.Error())
+			a.Logger.Errorf("rocksCache.DeleteAdminFamily ID: %d, error:%s", req.GetId(), err.Error())
 		}
 	}
 

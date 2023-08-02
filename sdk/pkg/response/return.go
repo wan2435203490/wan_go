@@ -28,7 +28,6 @@ func Error(c *gin.Context, code int, err error, msg string) {
 	//c.Set("status", code)
 	c.AbortWithStatusJSON(http.StatusOK, res)
 	log.Printf("%#v\n", msg)
-
 }
 
 // OK 通常成功数据处理

@@ -95,6 +95,7 @@ func InitMysql(DB *DataBases) {
 		&blog.ImChatGroupUser{},
 		&blog.ImChatUserMessage{},
 		&blog.ImChatUserGroupMessage{},
+		&blog.Achievement{},
 	)
 
 	db.Set("gorm:table_options", "CHARSET=utf8")

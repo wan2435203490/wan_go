@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	TrafficKey = "X-Request-Id"
+	TrafficKey = "X-Request-ID"
 	LoggerKey  = "logger-request"
 )
 

@@ -29,7 +29,9 @@ import (
 	"wan_go/pkg/utils"
 )
 
-func DelKeys() {
+const Value = "value"
+
+func DelBlogKeys() {
 	fmt.Println("init rocks cache to del old keys")
 	fName := utils.GetSelfFuncName()
 	for _, key := range []string{blog_const.ADMIN, blog_const.WEB_INFO, blog_const.SORT_INFO, blog_const.ADMIN_FAMILY,

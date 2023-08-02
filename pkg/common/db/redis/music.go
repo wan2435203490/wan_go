@@ -1,4 +1,4 @@
-package blog
+package redis
 
 import (
 	json2 "encoding/json"

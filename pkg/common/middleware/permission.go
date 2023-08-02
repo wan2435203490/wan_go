@@ -7,6 +7,18 @@ import (
 	"wan_go/sdk/pkg/response"
 )
 
+func AuthCheckBoss() gin.HandlerFunc {
+	return AuthCheckRole(1)
+}
+
+func AuthCheckAdmin() gin.HandlerFunc {
+	return AuthCheckRole(2)
+}
+
+func AuthCheckUser() gin.HandlerFunc {
+	return AuthCheckRole(3)
+}
+
 // AuthCheckRole 权限检查中间件
 // roleId 1 站长
 // roleId 2 管理员

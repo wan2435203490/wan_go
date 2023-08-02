@@ -60,7 +60,7 @@ func (e *DBConfig) Init(config *gorm.Config, open func(string) gorm.Dialector) (
 		register = register.SetMaxIdleConns(e.maxIdleConns)
 	}
 	if register != nil {
-		err = db.Use(register)
+		err = blog.Use(register)
 	}
 	return db, err
 }

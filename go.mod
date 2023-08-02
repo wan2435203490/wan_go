@@ -11,11 +11,13 @@ require (
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869
 	github.com/bsm/redislock v0.9.2
 	github.com/bytedance/go-tagexpr/v2 v2.9.7
+	github.com/bytedance/sonic v1.9.2
 	github.com/casbin/casbin/v2 v2.68.0
 	github.com/casbin/redis-watcher/v2 v2.5.0
 	github.com/chai2010/webp v1.1.1
 	github.com/chanxuehong/wechat v0.0.0-20230222024006-36f0325263cd
 	github.com/dtm-labs/rockscache v0.1.0
+	github.com/emicklei/go-restful v2.14.2+incompatible
 	github.com/fsnotify/fsnotify v1.6.0
 	github.com/ghodss/yaml v1.0.0
 	github.com/gin-contrib/sessions v0.0.5
@@ -88,7 +90,6 @@ require (
 	github.com/andeya/ameda v1.5.3 // indirect
 	github.com/andeya/goutil v1.0.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/bytedance/sonic v1.9.2 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/chanxuehong/rand v0.0.0-20211009035549-2f07823e8e99 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311 // indirect

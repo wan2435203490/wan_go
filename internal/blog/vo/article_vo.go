@@ -42,6 +42,8 @@ func (to *ArticleVO) Copy(from *blog.Article) {
 	to.RecommendStatus = from.RecommendStatus
 	to.Password = from.Password
 	to.ViewStatus = from.ViewStatus
+	to.ViewCount = from.ViewCount
+	to.LikeCount = from.LikeCount
 	to.CreatedAt = from.CreatedAt
 	to.UpdatedAt = from.UpdatedAt
 	to.UpdateBy = from.UpdateBy

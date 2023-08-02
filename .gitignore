@@ -6,3 +6,6 @@
 *.rdb
 *.tar.gz
 bin
+*.Dockerfile
+env
+Makefile

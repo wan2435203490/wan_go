@@ -17,7 +17,7 @@ func init() {
 		} else {
 			continue
 		}
-		var appMgr db.User
+		var appMgr blog.User
 		appMgr.UserID = v
 		if k == 0 {
 			appMgr.Nickname = config.Config.Manager.AppSysNotificationName
@@ -34,7 +34,7 @@ func init() {
 	}
 }
 
-func UserRegister(user db.User) error {
+func UserRegister(user blog.User) error {
 	user.CreateTime = time.Now()
 	if user.AppMangerLevel == 0 {
 		user.AppMangerLevel = constant.AppOrdinaryUsers
@@ -49,14 +49,14 @@ func UserRegister(user db.User) error {
 	return nil
 }
 
-func GetAllUser() ([]db.User, error) {
-	var userList []db.User
+func GetAllUser() ([]blog.User, error) {
+	var userList []blog.User
 	err := db.DB.MysqlDB.DefaultGormDB().Table("users").Find(&userList).Error
 	return userList, err
 }
 
-func GetUserByUserID(userID string) (*db.User, error) {
-	var user db.User
+func GetUserByUserID(userID string) (*blog.User, error) {
+	var user blog.User
 	err := db.DB.MysqlDB.DefaultGormDB().Table("users").Where("user_id=?", userID).Take(&user).Error
 	if err != nil {
 		return nil, err
@@ -64,14 +64,14 @@ func GetUserByUserID(userID string) (*db.User, error) {
 	return &user, nil
 }
 
-func GetUsersByUserIDList(userIDList []string) ([]*db.User, error) {
-	var userList []*db.User
+func GetUsersByUserIDList(userIDList []string) ([]*blog.User, error) {
+	var userList []*blog.User
 	err := db.DB.MysqlDB.DefaultGormDB().Table("users").Where("user_id in (?)", userIDList).Find(&userList).Error
 	return userList, err
 }
 
 func GetUserNameByUserID(userID string) (string, error) {
-	var user db.User
+	var user blog.User
 	err := db.DB.MysqlDB.DefaultGormDB().Table("users").Select("name").Where("user_id=?", userID).First(&user).Error
 	if err != nil {
 		return "", err
@@ -79,11 +79,11 @@ func GetUserNameByUserID(userID string) (string, error) {
 	return user.Nickname, nil
 }
 
-func UpdateUserInfo(user db.User) error {
+func UpdateUserInfo(user blog.User) error {
 	return db.DB.MysqlDB.DefaultGormDB().Table("users").Where("user_id=?", user.UserID).Updates(&user).Error
 }
 
-func UpdateUserInfoByMap(user db.User, m map[string]interface{}) error {
+func UpdateUserInfoByMap(user blog.User, m map[string]interface{}) error {
 	err := db.DB.MysqlDB.DefaultGormDB().Table("users").Where("user_id=?", user.UserID).Updates(m).Error
 	return err
 }
@@ -106,8 +106,8 @@ func SelectSomeUserID(userIDList []string) ([]string, error) {
 	return resultArr, nil
 }
 
-func GetUsers(showNumber, pageNumber int32) ([]db.User, error) {
-	var users []db.User
+func GetUsers(showNumber, pageNumber int32) ([]blog.User, error) {
+	var users []blog.User
 	err := db.DB.MysqlDB.DefaultGormDB().Table("users").Limit(int(showNumber)).Offset(int(showNumber * (pageNumber - 1))).Find(&users).Error
 	if err != nil {
 		return users, err
@@ -120,7 +120,7 @@ func AddUser(userID string, phoneNumber string, name string, email string, gende
 	if err != nil {
 		return err
 	}
-	user := db.User{
+	user := blog.User{
 		UserID:      userID,
 		Nickname:    name,
 		FaceURL:     faceURL,
@@ -181,7 +181,7 @@ func UnBlockUser(userID string) error {
 }
 
 type BlockUserInfo struct {
-	User             db.User
+	User             blog.User
 	BeginDisableTime time.Time
 	EndDisableTime   time.Time
 }
@@ -194,7 +194,7 @@ func GetBlockUserByID(userId string) (BlockUserInfo, error) {
 	if err := db.DB.MysqlDB.DefaultGormDB().Table("black_lists").Where("uid=?", userId).Find(&blockUser).Error; err != nil {
 		return blockUserInfo, err
 	}
-	user := db.User{
+	user := blog.User{
 		UserID: blockUser.UserId,
 	}
 	if err := db.DB.MysqlDB.DefaultGormDB().Find(&user).Error; err != nil {
@@ -219,10 +219,10 @@ func GetBlockUsers(showNumber, pageNumber int32) ([]BlockUserInfo, error) {
 		return blockUserInfos, err
 	}
 	for _, blockUser := range blockUsers {
-		var user db.User
+		var user blog.User
 		if err := db.DB.MysqlDB.DefaultGormDB().Table("users").Where("user_id=?", blockUser.UserId).First(&user).Error; err == nil {
 			blockUserInfos = append(blockUserInfos, BlockUserInfo{
-				User: db.User{
+				User: blog.User{
 					UserID:      user.UserID,
 					Nickname:    user.Nickname,
 					FaceURL:     user.FaceURL,
@@ -239,14 +239,14 @@ func GetBlockUsers(showNumber, pageNumber int32) ([]BlockUserInfo, error) {
 	return blockUserInfos, nil
 }
 
-func GetUserByName(userName string, showNumber, pageNumber int32) ([]db.User, error) {
-	var users []db.User
+func GetUserByName(userName string, showNumber, pageNumber int32) ([]blog.User, error) {
+	var users []blog.User
 	err := db.DB.MysqlDB.DefaultGormDB().Table("users").Where(" name like ?", fmt.Sprintf("%%%s%%", userName)).Limit(int(showNumber)).Offset(int(showNumber * (pageNumber - 1))).Find(&users).Error
 	return users, err
 }
 
-func GetUsersByNameAndID(content string, showNumber, pageNumber int32) ([]db.User, int64, error) {
-	var users []db.User
+func GetUsersByNameAndID(content string, showNumber, pageNumber int32) ([]blog.User, int64, error) {
+	var users []blog.User
 	var count int64
 	db := db.DB.MysqlDB.DefaultGormDB().Table("users").Where(" name like ? or user_id = ? ", fmt.Sprintf("%%%s%%", content), content)
 	if err := db.Count(&count).Error; err != nil {

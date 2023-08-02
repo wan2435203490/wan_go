@@ -1,6 +1,33 @@
 #docker-compose.yml's version
 version: "3"
 services:
+  elasticsearch:
+    image: elasticsearch:7.9.1
+    container_name: es
+    platform: linux/arm64/v8
+    ports:
+      - "9200:9200"
+#      - "9300:9300"
+    volumes:
+      - /docker/volume/elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+      - /docker/volume/elasticsearch/data:/usr/share/elasticsearch/data
+      - /docker/volume/elasticsearch/plugins:/usr/share/elasticsearch/plugins
+    environment:
+      - node.name=es01
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms84m -Xmx512m"
+    restart: always
+
+  kibana:
+    image: kibana:7.9.1
+    container_name: kibana
+    platform: linux/arm64/v8
+    ports:
+      - "5601:5601"
+    environment:
+#     因为kibana已经与elasticsearch在一个网络，因此可以用容器名直接访问elasticsearch，否则配置为自己的IP地址。
+      - ELASTICSEARCH_HOSTS=http://es:9200
+
 #  mysql:
 #    image: mysql:latest
 #    platform: linux/arm64/v8

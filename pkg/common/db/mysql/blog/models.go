@@ -26,8 +26,9 @@ type User struct {
 
 	//CreateTime time.Time `gorm:"column:create_time;type:DATETIME;"`
 	//UpdateTime time.Time `gorm:"column:update_time;type:DATETIME;"`
-	UpdateBy     string `gorm:"column:update_by;type:VARCHAR(32);" json:"updateBy,omitempty"`
-	CrypotJsText string `gorm:"column:crypot_js_text;type:VARCHAR(128);" json:"-"`
+	UpdateBy     string  `gorm:"column:update_by;type:VARCHAR(32);" json:"updateBy,omitempty"`
+	CrypotJsText string  `gorm:"column:crypot_js_text;type:VARCHAR(128);" json:"-"`
+	Money        float64 `gorm:"column:money;type:DOUBLE;" json:"money"`
 	//Deleted    bool      `gorm:"column://Deleted;type:TINYINT(1);NOT NULL"`
 }
 
@@ -81,8 +82,8 @@ type Article struct {
 	ArticleCover    string `gorm:"column:article_cover;type:VARCHAR(256);"`
 	ArticleTitle    string `gorm:"column:article_title;type:VARCHAR(32);NOT NULL"`
 	ArticleContent  string `gorm:"column:article_content;type:TEXT;NOT NULL"`
-	ViewCount       int32  `gorm:"column:view_count;type:INT;NOT NULL"`
-	LikeCount       int32  `gorm:"column:like_count;type:INT;NOT NULL"`
+	ViewCount       int    `gorm:"column:view_count;type:INT;NOT NULL"`
+	LikeCount       int    `gorm:"column:like_count;type:INT;NOT NULL"`
 	ViewStatus      bool   `gorm:"column:view_status;type:TINYINT(1);NOT NULL"`
 	Password        string `gorm:"column:password;type:VARCHAR(128);"`
 	RecommendStatus bool   `gorm:"column:recommend_status;type:TINYINT(1);NOT NULL"`
@@ -333,6 +334,29 @@ type ImChatUserGroupMessage struct {
 
 func (ImChatUserGroupMessage) TableName() string {
 	return "im_chat_user_group_message"
+}
+
+// 斗地主 成绩
+type Achievement struct {
+	ID           int32 `gorm:"column:id;primary_key;type:BIGINT;AUTO_INCREMENT;NOT NULL" json:"id"`
+	WinMatch     int   `gorm:"column:win_match;type:INT" json:"winMatch"`
+	FailureMatch int   `gorm:"column:failure_match;type:INT" json:"failureMatch"`
+	Sum          int   `gorm:"column:sum;type:INT" json:"sum"`
+	UserId       int32 `gorm:"column:user_id;type:INT" json:"userId"`
+}
+
+func (Achievement) TableName() string {
+	return "achievement"
+}
+
+func (a *Achievement) CalculateScore(isWin bool) {
+	if isWin {
+		a.WinMatch++
+		a.Sum++
+	} else {
+		a.FailureMatch++
+		a.Sum++
+	}
 }
 
 func (to *WebInfo) Copy(from *WebInfo) {

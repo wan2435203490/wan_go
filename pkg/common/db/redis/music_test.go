@@ -1,4 +1,4 @@
-package blog
+package redis
 
 import (
 	"testing"

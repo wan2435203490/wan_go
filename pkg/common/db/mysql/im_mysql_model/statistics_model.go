@@ -89,7 +89,7 @@ func GetActiveUsers(from, to time.Time, limit int) ([]*activeUser, error) {
 	var activeUsers []*activeUser
 	err := db.DB.MysqlDB.DefaultGormDB().Table("chat_logs").Select("send_id, count(*) as message_num").Where("send_time >= ? and send_time <= ? and session_type = ?", from, to, constant.SingleChatType).Group("send_id").Limit(limit).Order("message_num DESC").Find(&activeUsers).Error
 	for _, activeUser := range activeUsers {
-		user := db.User{
+		user := blog.User{
 			UserID: activeUser.ID,
 		}
 		err = db.DB.MysqlDB.DefaultGormDB().Table("users").Select("user_id, name").Find(&user).Error

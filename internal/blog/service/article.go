@@ -108,7 +108,7 @@ func (s *Article) GetArticle(c *gin.Context, d *dto.GetArticleReq, data *vo.Arti
 		return errors.New("文章不存在")
 	}
 
-	s.Orm.Debug().Model(&article).Updates("view_count=view_count+1")
+	s.Orm.Debug().Model(&article).Update("view_count", article.ViewCount+1)
 
 	*data = *buildArticleVO(c, &article, false, userName)
 

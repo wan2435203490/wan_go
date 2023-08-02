@@ -76,9 +76,9 @@ func DeleteAllRegisterAddFriendIDList() error {
 	return err
 }
 
-func GetUserIPLimit(userID string) (db.UserIpLimit, error) {
-	var limit db.UserIpLimit
+func GetUserIPLimit(userID string) (blog.UserIpLimit, error) {
+	var limit blog.UserIpLimit
 	limit.UserID = userID
-	err := db.DB.MysqlDB.DefaultGormDB().Model(&db.UserIpLimit{}).Take(&limit).Error
+	err := db.DB.MysqlDB.DefaultGormDB().Model(&blog.UserIpLimit{}).Take(&limit).Error
 	return limit, err
 }

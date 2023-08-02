@@ -33,9 +33,8 @@ func InitMiddleware(engine *gin.Engine) {
 	engine.Use(sessions.Sessions(config.Config.Session.Name, store))
 	//engine.Use(middleware.WithCors)
 	engine.Use(middleware.NoCache, middleware.Options, middleware.Secure)
-	//engine.Use(RequestId(TrafficKey), apis.SetRequestLogger)
+	//engine.Use(middleware.RequestId(TrafficKey), apis.SetRequestLogger)
 	//engine.Use(CustomError, NoCache)
-	//todo logs permission
 }
 
 func Init(engine *gin.Engine) {
@@ -52,7 +51,7 @@ func initDB() {
 
 func initCache() {
 
-	rocksCache.DelKeys()
+	rocksCache.DelBlogKeys()
 
 	wg := sync.WaitGroup{}
 	wg.Add(4)

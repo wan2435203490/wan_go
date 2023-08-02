@@ -46,17 +46,19 @@ func GetUserInfo(c *gin.Context) (userId int32, userName string) {
 	return 0, ""
 }
 
-func GetUser(c *gin.Context, user *blog.User) {
+func GetUser(c *gin.Context) *blog.User {
 	data := ExtractClaims(c)
 	if data[constant.ClaimsIdentity] != nil {
+		user := blog.User{}
 		user.ID = int32((data[constant.ClaimsIdentity]).(float64))
 		user.UserName = (data[constant.ClaimsUserName]).(string)
 		user.Avatar = (data[constant.ClaimsAvatar]).(string)
 		user.Email = (data[constant.ClaimsEmail]).(string)
 		user.PhoneNumber = (data[constant.ClaimsPhoneNumber]).(string)
-		return
+		return &user
 	}
 	fmt.Println(pkg.GetCurrentTimeStr() + " [WARING] " + c.Request.Method + " " + c.Request.URL.Path + " GetUser 缺少 identity")
+	return nil
 }
 
 func GetUserId32(c *gin.Context) int32 {

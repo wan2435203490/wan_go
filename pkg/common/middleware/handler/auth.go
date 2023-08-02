@@ -89,12 +89,15 @@ func Authenticator(c *gin.Context) (interface{}, error) {
 		return nil, jwt.ErrMissingLoginValues
 	}
 	if config.Config.Application.Mode != "dev" && !loginVals.IsAdmin {
-		if !captcha.Verify(loginVals.UUID, loginVals.Captcha, true) {
-			username = loginVals.UserName
-			msg = "验证码错误"
-			status = "1"
+		//斗地主页面暂时不加验证码
+		if !(loginVals.UUID == "uuid" && loginVals.Captcha == "captcha") {
+			if !captcha.Verify(loginVals.UUID, loginVals.Captcha, true) {
+				username = loginVals.UserName
+				msg = "验证码错误"
+				status = "1"
 
-			return nil, jwt.ErrInvalidVerificationode
+				return nil, jwt.ErrInvalidVerificationode
+			}
 		}
 	}
 	user, role, e := loginVals.GetUser(db)

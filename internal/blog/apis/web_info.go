@@ -36,7 +36,7 @@ func (a WebInfoApi) UpdateWebInfo(c *gin.Context) {
 	}
 
 	if err := rocksCache.DeleteWebInfo(); err != nil {
-		a.Logger.Errorf("rocksCache.DeleteWebInfo Id: %d, error:%s", req.GetId(), err.Error())
+		a.Logger.Errorf("rocksCache.DeleteWebInfo ID: %d, error:%s", req.GetId(), err.Error())
 	}
 
 	a.OK()
@@ -339,7 +339,7 @@ func (a WebInfoApi) InsertSort(c *gin.Context) {
 	}
 
 	if err := rocksCache.DeleteSortInfo(); err != nil {
-		a.Logger.Errorf("rocksCache.DeleteSortInfo Id: %d, error:%s", req.GetId(), err.Error())
+		a.Logger.Errorf("rocksCache.DeleteSortInfo ID: %d, error:%s", req.GetId(), err.Error())
 	}
 
 	a.OKMsg(req.GetId(), constant.DBInsertOK)
@@ -357,7 +357,7 @@ func (a WebInfoApi) DeleteSort(c *gin.Context) {
 	}
 
 	if err := rocksCache.DeleteSortInfo(); err != nil {
-		a.Logger.Errorf("rocksCache.DeleteSortInfo Id: %d, error:%s", req.GetId(), err.Error())
+		a.Logger.Errorf("rocksCache.DeleteSortInfo ID: %d, error:%s", req.GetId(), err.Error())
 	}
 
 	a.OKMsg(req.GetId(), constant.DBDeleteOK)
@@ -380,7 +380,7 @@ func (a WebInfoApi) UpdateSort(c *gin.Context) {
 	}
 
 	if err := rocksCache.DeleteSortInfo(); err != nil {
-		a.Logger.Errorf("rocksCache.DeleteSortInfo Id: %d, error:%s", req.GetId(), err.Error())
+		a.Logger.Errorf("rocksCache.DeleteSortInfo ID: %d, error:%s", req.GetId(), err.Error())
 	}
 
 	a.OKMsg(req.GetId(), constant.DBUpdateOK)
@@ -418,7 +418,7 @@ func (a WebInfoApi) InsertLabel(c *gin.Context) {
 	}
 
 	if err := rocksCache.DeleteSortInfo(); err != nil {
-		a.Logger.Errorf("rocksCache.DeleteSortInfo Id: %d, error:%s", req.GetId(), err.Error())
+		a.Logger.Errorf("rocksCache.DeleteSortInfo ID: %d, error:%s", req.GetId(), err.Error())
 	}
 
 	a.OKMsg(req.GetId(), constant.DBInsertOK)
@@ -436,7 +436,7 @@ func (a WebInfoApi) DeleteLabel(c *gin.Context) {
 	}
 
 	if err := rocksCache.DeleteSortInfo(); err != nil {
-		a.Logger.Errorf("rocksCache.DeleteSortInfo Id: %d, error:%s", req.GetId(), err.Error())
+		a.Logger.Errorf("rocksCache.DeleteSortInfo ID: %d, error:%s", req.GetId(), err.Error())
 	}
 
 	a.OKMsg(req.GetId(), constant.DBDeleteOK)
@@ -459,7 +459,7 @@ func (a WebInfoApi) UpdateLabel(c *gin.Context) {
 	}
 
 	if err := rocksCache.DeleteSortInfo(); err != nil {
-		a.Logger.Errorf("rocksCache.DeleteSortInfo Id: %d, error:%s", req.GetId(), err.Error())
+		a.Logger.Errorf("rocksCache.DeleteSortInfo ID: %d, error:%s", req.GetId(), err.Error())
 	}
 
 	a.OKMsg(req.GetId(), constant.DBUpdateOK)

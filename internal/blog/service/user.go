@@ -19,9 +19,9 @@ func NewUser(c *gin.Context) *User {
 	return &us
 }
 
-//func (s *User) Login(account string, password string, isAdmin bool) *vo.UserVO {
+//func (s *User) Login(account string, password string, isAdmin bool) *model.UserVO {
 //
-//	var userVO vo.UserVO
+//	var userVO model.UserVO
 //
 //	var err error
 //	password = utils.AesDecryptCrypotJsKey(password)
@@ -50,7 +50,7 @@ func NewUser(c *gin.Context) *User {
 //	return &userVO
 //}
 //
-//func adminLogin(user *blog.User, userVO *vo.UserVO) {
+//func adminLogin(user *blog.User, userVO *model.UserVO) {
 //	var token string
 //
 //	if user.UserType != blog_const.USER_TYPE_ADMIN.Code && user.UserType != blog_const.USER_TYPE_DEV.Code {
@@ -74,7 +74,7 @@ func NewUser(c *gin.Context) *User {
 //	userVO.AccessToken = token
 //}
 //
-//func userLogin(user *blog.User, userVO *vo.UserVO) {
+//func userLogin(user *blog.User, userVO *model.UserVO) {
 //	var token string
 //
 //	key := blog_const.USER_TOKEN + utils.Int32ToString(user.ID)

@@ -50,9 +50,9 @@ func QueryIPLimits(ip string) (*db.IpLimit, error) {
 	return &ipLimit, err
 }
 
-func QueryUserIPLimits(ip string) ([]db.UserIpLimit, error) {
-	var ips []db.UserIpLimit
-	err := db.DB.MysqlDB.DefaultGormDB().Model(&db.UserIpLimit{}).Where("ip=?", ip).Find(&ips).Error
+func QueryUserIPLimits(ip string) ([]blog.UserIpLimit, error) {
+	var ips []blog.UserIpLimit
+	err := db.DB.MysqlDB.DefaultGormDB().Model(&blog.UserIpLimit{}).Where("ip=?", ip).Find(&ips).Error
 	return ips, err
 }
 
@@ -65,20 +65,20 @@ func DeleteOneFromIpLimits(ip string) error {
 	return db.DB.MysqlDB.DefaultGormDB().Model(ipLimits).Where("ip=?", ip).Delete(ipLimits).Error
 }
 
-func GetIpLimitsLoginByUserID(userID string) ([]db.UserIpLimit, error) {
-	var ips []db.UserIpLimit
-	err := db.DB.MysqlDB.DefaultGormDB().Model(&db.UserIpLimit{}).Where("user_id=?", userID).Find(&ips).Error
+func GetIpLimitsLoginByUserID(userID string) ([]blog.UserIpLimit, error) {
+	var ips []blog.UserIpLimit
+	err := db.DB.MysqlDB.DefaultGormDB().Model(&blog.UserIpLimit{}).Where("user_id=?", userID).Find(&ips).Error
 	return ips, err
 }
 
-func InsertUserIpLimitsLogin(userIp *db.UserIpLimit) error {
+func InsertUserIpLimitsLogin(userIp *blog.UserIpLimit) error {
 	userIp.CreateTime = time.Now()
-	return db.DB.MysqlDB.DefaultGormDB().Model(&db.UserIpLimit{}).Create(userIp).Error
+	return db.DB.MysqlDB.DefaultGormDB().Model(&blog.UserIpLimit{}).Create(userIp).Error
 }
 
 func DeleteUserIpLimitsLogin(userID, ip string) error {
-	userIp := db.UserIpLimit{UserID: userID, Ip: ip}
-	return db.DB.MysqlDB.DefaultGormDB().Model(&db.UserIpLimit{}).Delete(&userIp).Error
+	userIp := blog.UserIpLimit{UserID: userID, Ip: ip}
+	return db.DB.MysqlDB.DefaultGormDB().Model(&blog.UserIpLimit{}).Delete(&userIp).Error
 }
 
 func GetRegisterUserNum(ip string) ([]string, error) {
@@ -88,14 +88,14 @@ func GetRegisterUserNum(ip string) ([]string, error) {
 }
 
 func InsertIpRecord(userID, createIp string) error {
-	record := &db.UserIpRecord{UserID: userID, CreateIp: createIp, LastLoginTime: time.Now(), LoginTimes: 1}
-	err := db.DB.MysqlDB.DefaultGormDB().Model(&db.UserIpRecord{}).Create(record).Error
+	record := &blog.UserIpRecord{UserID: userID, CreateIp: createIp, LastLoginTime: time.Now(), LoginTimes: 1}
+	err := db.DB.MysqlDB.DefaultGormDB().Model(&blog.UserIpRecord{}).Create(record).Error
 	return err
 }
 
 func UpdateIpReocord(userID, ip string) (err error) {
-	record := &db.UserIpRecord{UserID: userID, LastLoginIp: ip, LastLoginTime: time.Now()}
-	result := db.DB.MysqlDB.DefaultGormDB().Model(&db.UserIpRecord{}).Where("user_id=?", userID).Updates(record).Update("login_times", gorm.Expr("login_times+?", 1))
+	record := &blog.UserIpRecord{UserID: userID, LastLoginIp: ip, LastLoginTime: time.Now()}
+	result := db.DB.MysqlDB.DefaultGormDB().Model(&blog.UserIpRecord{}).Where("user_id=?", userID).Updates(record).Update("login_times", gorm.Expr("login_times+?", 1))
 	if result.Error != nil {
 		return utils.Wrap(result.Error, "")
 	}

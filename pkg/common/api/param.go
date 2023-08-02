@@ -157,8 +157,8 @@ func (a *Api) Bind(d interface{}, bindings ...binding.Binding) bool {
 		return true
 	}
 
-	//todo set status when d is vo.BaseRequestVO
-	//if a.IsAdmin() && reflect.TypeOf(d).String() == "vo.BaseRequestVO" {
+	//todo set status when d is model.BaseRequestVO
+	//if a.IsAdmin() && reflect.TypeOf(d).String() == "model.BaseRequestVO" {
 	//	//todo test
 	//	v := reflect.ValueOf(d)
 	//	v.FieldByName("Status").Set(reflect.ValueOf(true))

@@ -12,7 +12,7 @@ import (
 	"wan_go/internal/blog/vo/music/netease"
 	"wan_go/internal/blog/vo/music/qq"
 	"wan_go/pkg/common/api"
-	blogRedis "wan_go/pkg/common/db/redis/blog"
+	"wan_go/pkg/common/db/redis"
 	"wan_go/pkg/utils"
 )
 
@@ -108,16 +108,16 @@ func (a MusicApi) RandomMusic(c *gin.Context) {
 	}
 
 	//校验redis里存了多少个 当有 maxCacheCount 个时则不去api获取，直接去redis拿
-	countNetease := blogRedis.CountSongInfo(keyNeteaseRand)
-	countQQ := blogRedis.CountSongInfo(keyQQRand)
+	countNetease := redis.CountSongInfo(keyNeteaseRand)
+	countQQ := redis.CountSongInfo(keyQQRand)
 
 	neteaseSongs := music.RandomSong{TypeName: "网易云热歌"}
 	qqSongs := music.RandomSong{TypeName: "QQ音乐随机"}
 
 	//不去校验那么仔细 大约存 maxCacheCount 个数据就好
 	if countNetease > maxCacheCount || countQQ > maxCacheCount {
-		netEaseResult := blogRedis.GetSongInfo(keyNeteaseRand, count)
-		qqResult := blogRedis.GetSongInfo(keyQQRand, count)
+		netEaseResult := redis.GetSongInfo(keyNeteaseRand, count)
+		qqResult := redis.GetSongInfo(keyQQRand, count)
 
 		neteaseSongs.Songs = netEaseResult
 		qqSongs.Songs = qqResult
@@ -133,7 +133,7 @@ func (a MusicApi) RandomMusic(c *gin.Context) {
 			go func() {
 				song, _ := GetNeteaseHot()
 				json, _ := json2.Marshal(song)
-				_ = blogRedis.CacheSongInfo(keyNeteaseRand, song.Url, json)
+				_ = redis.CacheSongInfo(keyNeteaseRand, song.Url, json)
 				neteaseMu.Lock()
 				netEaseResult = append(netEaseResult, song)
 				neteaseMu.Unlock()

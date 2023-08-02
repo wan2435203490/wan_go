@@ -30,6 +30,51 @@ type config struct {
 		EnableDP      bool   `yaml:"enableDP"`
 	} `yaml:"application"`
 
+	Log struct {
+		StorageLocation       string   `yaml:"storageLocation"`
+		RotationTime          int      `yaml:"rotationTime"`
+		RemainRotationCount   uint     `yaml:"remainRotationCount"`
+		RemainLogLevel        uint     `yaml:"remainLogLevel"`
+		ElasticSearchSwitch   bool     `yaml:"elasticSearchSwitch"`
+		ElasticSearchAddr     []string `yaml:"elasticSearchAddr"`
+		ElasticSearchUser     string   `yaml:"elasticSearchUser"`
+		ElasticSearchPassword string   `yaml:"elasticSearchPassword"`
+	}
+
+	Blog struct {
+		Name         string `yaml:"name"`
+		Port         []int  `yaml:"port"`
+		ListenIP     string `yaml:"listenIP"`
+		AliSMSVerify struct {
+			AccessKeyID                  string `yaml:"accessKeyId"`
+			AccessKeySecret              string `yaml:"accessKeySecret"`
+			SignName                     string `yaml:"signName"`
+			VerificationCodeTemplateCode string `yaml:"verificationCodeTemplateCode"`
+			Enable                       bool   `yaml:"enable"`
+		}
+		TencentSMS struct {
+			AppID                        string `yaml:"appID"`
+			Region                       string `yaml:"region"`
+			SecretID                     string `yaml:"secretID"`
+			SecretKey                    string `yaml:"secretKey"`
+			SignName                     string `yaml:"signName"`
+			VerificationCodeTemplateCode string `yaml:"verificationCodeTemplateCode"`
+			Enable                       bool   `yaml:"enable"`
+		}
+		SuperCode    string `yaml:"superCode"`
+		CodeTTL      int    `yaml:"codeTTL"`
+		UseSuperCode bool   `yaml:"useSuperCode"`
+		CrypotJSKey  string `yaml:"crypotJSKey""`
+		Mail         struct {
+			Title                   string `yaml:"title"`
+			SenderMail              string `yaml:"senderMail"`
+			SenderAuthorizationCode string `yaml:"senderAuthorizationCode"`
+			SmtpAddr                string `yaml:"smtpAddr"`
+			SmtpPort                int    `yaml:"smtpPort"`
+		} `yaml:"mail"`
+		RandomNames []string `yaml:"randomNames"`
+	}
+
 	User struct {
 		CaptchaFormat string `yaml:"captchaFormat"`
 	} `yaml:"user"`
@@ -155,7 +200,15 @@ type config struct {
 		}
 	}
 	Landlords struct {
+		Port                    []int `yaml:"port"`
 		MaxSecondsForEveryRound int64 `yaml:"max_seconds_for_every_round"`
+		Websocket               struct {
+			Port             []string `yaml:"port"`
+			MaxConnNum       int      `yaml:"max_conn_num"`
+			MaxMsgLen        int      `yaml:"max_msg_len"`
+			HandshakeTimeOut int      `yaml:"handshake_time_out"`
+			OnlineTimeOut    int      `yaml:"online_time_out"`
+		} `yaml:"websocket"`
 	}
 
 	Session struct {
@@ -181,51 +234,6 @@ type config struct {
 		MaxMsgLen        int      `yaml:"max_msg_len"`
 		HandshakeTimeOut int      `yaml:"handshake_time_out"`
 		OnlineTimeOut    int      `yaml:"online_time_out"`
-	}
-
-	Log struct {
-		StorageLocation       string   `yaml:"storageLocation"`
-		RotationTime          int      `yaml:"rotationTime"`
-		RemainRotationCount   uint     `yaml:"remainRotationCount"`
-		RemainLogLevel        uint     `yaml:"remainLogLevel"`
-		ElasticSearchSwitch   bool     `yaml:"elasticSearchSwitch"`
-		ElasticSearchAddr     []string `yaml:"elasticSearchAddr"`
-		ElasticSearchUser     string   `yaml:"elasticSearchUser"`
-		ElasticSearchPassword string   `yaml:"elasticSearchPassword"`
-	}
-
-	Blog struct {
-		Name         string `yaml:"name"`
-		Port         []int  `yaml:"port"`
-		ListenIP     string `yaml:"listenIP"`
-		AliSMSVerify struct {
-			AccessKeyID                  string `yaml:"accessKeyId"`
-			AccessKeySecret              string `yaml:"accessKeySecret"`
-			SignName                     string `yaml:"signName"`
-			VerificationCodeTemplateCode string `yaml:"verificationCodeTemplateCode"`
-			Enable                       bool   `yaml:"enable"`
-		}
-		TencentSMS struct {
-			AppID                        string `yaml:"appID"`
-			Region                       string `yaml:"region"`
-			SecretID                     string `yaml:"secretID"`
-			SecretKey                    string `yaml:"secretKey"`
-			SignName                     string `yaml:"signName"`
-			VerificationCodeTemplateCode string `yaml:"verificationCodeTemplateCode"`
-			Enable                       bool   `yaml:"enable"`
-		}
-		SuperCode    string `yaml:"superCode"`
-		CodeTTL      int    `yaml:"codeTTL"`
-		UseSuperCode bool   `yaml:"useSuperCode"`
-		CrypotJSKey  string `yaml:"crypotJSKey""`
-		Mail         struct {
-			Title                   string `yaml:"title"`
-			SenderMail              string `yaml:"senderMail"`
-			SenderAuthorizationCode string `yaml:"senderAuthorizationCode"`
-			SmtpAddr                string `yaml:"smtpAddr"`
-			SmtpPort                int    `yaml:"smtpPort"`
-		} `yaml:"mail"`
-		RandomNames []string `yaml:"randomNames"`
 	}
 
 	Prometheus struct {

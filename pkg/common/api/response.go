@@ -1,28 +1,26 @@
 package api
 
 import (
-	json2 "encoding/json"
 	"github.com/gin-gonic/gin"
-	"log"
 	"net/http"
 	r "wan_go/pkg/common/response"
 	"wan_go/pkg/utils"
 	"wan_go/sdk/pkg/response"
 )
 
-func (a Api) Done(err error) {
-	if !a.IsError(err) {
-		a.OK()
-	}
-}
+//func (a Api) Done(err error) {
+//	if !a.IsError(err) {
+//		a.OK()
+//	}
+//}
 
-func (a Api) DoneApiErr(apiErr *r.CodeMsg) {
-	if apiErr == nil || len(apiErr.Msg) == 0 {
-		a.OK()
-		return
-	}
-	a.ErrorInternal(apiErr.Msg)
-}
+//func (a Api) DoneApiErr(apiErr *r.CodeMsg) {
+//	if apiErr == nil || len(apiErr.Msg) == 0 {
+//		a.OK()
+//		return
+//	}
+//	a.ErrorInternal(apiErr.Msg)
+//}
 
 func (a Api) OKMsg(data interface{}, msg string) {
 	response.OK(a.Context, data, msg)
@@ -53,10 +51,14 @@ func (a Api) OK(data ...any) {
 	//	}
 	//}
 
-	a.OKMsg(data[0], "")
+	if len(data) == 0 {
+		a.OKMsg(nil, "")
+	} else {
+		//rr, _ := sonic.Marshal(data[0])
+		//a.Logger.Info(a.Context.Request.URL, ":", string(rr), "\n")
+		a.OKMsg(data[0], "")
+	}
 
-	rr, _ := json2.Marshal(data[0])
-	log.Println(a.Context.Request.URL, ":", string(rr), "\n")
 }
 
 func (a Api) CodeError(msg r.CodeMsg) {
@@ -78,13 +80,13 @@ func (a Api) ErrorInternal(msg string) {
 }
 
 // PageOK 分页数据处理
-func (e Api) PageOK(result interface{}, count int, pageIndex int, pageSize int, msg string) {
-	response.PageOK(e.Context, result, count, pageIndex, pageSize, msg)
+func (a Api) PageOK(result interface{}, count int, pageIndex int, pageSize int, msg string) {
+	response.PageOK(a.Context, result, count, pageIndex, pageSize, msg)
 }
 
 // Custom 兼容函数
-func (e Api) Custom(data gin.H) {
-	response.Custum(e.Context, data)
+func (a Api) Custom(data gin.H) {
+	response.Custum(a.Context, data)
 }
 
 // IsFailed named what?

@@ -66,7 +66,7 @@ func (a UserApi) Login(c *gin.Context) {
 
 	//a.MakeContext(c)
 	//
-	//var loginVO vo.LoginVO
+	//var loginVO model.LoginVO
 	//if a.Bind(&loginVO) {
 	//	return
 	//}
@@ -301,7 +301,7 @@ func (a UserApi) GetInfo0(c *gin.Context) {
 	//	mp["buttons"] = list
 	//}
 	//sysUser := models.SysUser{}
-	//req.Id = user.GetUserId(c)
+	//req.ID = user.GetUserId(c)
 	//err = s.Get(&req, p, &sysUser)
 	//if err != nil {
 	//	a.Error(http.StatusUnauthorized, err, "登录失败")
