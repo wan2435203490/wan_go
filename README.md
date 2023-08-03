@@ -2,7 +2,34 @@
 
 集成go项目
 
-jwt加密userId，生成tokenString,前端请求放在header["Token"]里面。
+# 打包
+写在Makefile的
 
-session采用cookie store存储用户信息curUser。如果session里面没有获取到curUser,将解析token，jwt解码获取userId，查询db获取user。
+# 部署 blog
+```shell
+docker stop blog
+docker rm blog
+docker rmi blog
+cd /usr/wan_go
+docker build -t blog -f deploy/blog/deploy.Dockerfile .
+docker-compose -f deploy/blog/docker-compose.yaml up -d
+ng restart
 
+#重启容器
+docker restart blog
+
+#更改可执行文件
+docker cp /usr/wan_go/bin/blog blog:/wan_go/bin
+```
+
+
+# 部署 landlord
+```shell
+docker stop landlord
+docker rm landlord
+docker rmi landlord
+cd /usr/wan_go
+docker build -t landlord -f deploy/landlord/deploy.Dockerfile .
+docker-compose -f deploy/landlord/docker-compose.yaml up -d
+ng restart
+```

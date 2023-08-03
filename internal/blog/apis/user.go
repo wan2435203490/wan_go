@@ -202,18 +202,18 @@ func (a UserApi) GetCaptchaForForgetPassword(c *gin.Context) {
 	flag := a.QueryInt("flag")
 	param := vo.Param{Place: place, Flag: flag}
 
-	captcha := "123456"
-	//captcha := utils.CreateCaptcha(6)
+	//captcha := "123456"
+	captcha := utils.CreateCaptcha(6)
 
-	//switch param.Flag {
-	//case 1:
-	//	log.Info("GetCaptchaForForgetPassword", "手机验证码:"+captcha)
-	//case 2:
-	//	log.Info("GetCaptchaForForgetPassword", "邮箱验证码:"+captcha)
-	//	sendMail(captcha, param.Place)
-	//default:
-	//	break
-	//}
+	switch param.Flag {
+	case 1:
+		log.Info("GetCaptchaForForgetPassword", "手机验证码:"+captcha)
+	case 2:
+		log.Info("GetCaptchaForForgetPassword", "邮箱验证码:"+captcha)
+		sendMail(captcha, param.Place)
+	default:
+		break
+	}
 
 	cache.SetExpire(blog_const.FORGET_PASSWORD+param.Place+"_"+param.FlagString(), captcha, time.Minute*5)
 

@@ -104,8 +104,8 @@ func SendMail(to []string, subject, text string) {
 	e.Subject = subject
 
 	// 普通文本内容，支持html
-	e.Text = []byte(text)
-	//e.HTML = []byte("<h1>html 邮件测试 </h1>")
+	//e.Text = []byte(text)
+	e.HTML = []byte(text)
 
 	auth := smtp.PlainAuth("", config.Config.Mail.Username, config.Config.Mail.Password, config.Config.Mail.Host)
 	err = e.Send(config.Config.Mail.Host+":"+config.Config.Mail.Port, auth)

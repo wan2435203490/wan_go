@@ -44,6 +44,9 @@ func (s *Room) JoinRoom(user *blog.User, dtoRoom *dto.Room) error {
 	if err != nil {
 		return err
 	}
+	if room.ContainsUser(user) {
+		return nil
+	}
 	if room.RoomStatus == landlord_const.Playing {
 		return errors.New("房间正在游戏中，无法加入")
 	}

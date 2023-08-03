@@ -22,7 +22,7 @@ type UserVO struct {
 	UpdateBy     string    `json:"updateBy"`
 	IsBoss       bool      `json:"isBoss"`
 	AccessToken  string    `json:"accessToken"`
-	Code         string    `json:"code"`
+	Captcha      string    `json:"captcha"`
 }
 
 func (to *UserVO) Copy(from *blog.User) {

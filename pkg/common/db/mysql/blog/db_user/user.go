@@ -43,17 +43,17 @@ func Register(c *gin.Context, userIn *vo.UserVO) (*vo.UserVO, error) {
 	if utils.IsNotEmpty(userIn.PhoneNumber) {
 		key := blog_const.FORGET_PASSWORD + userIn.PhoneNumber + "_1"
 		get, b := cache.GetString(key)
-		if !b || get != userIn.Code {
+		if !b || get != userIn.Captcha {
 			return nil, errors.New("验证码错误！")
 		}
 		cache.Delete(key)
 	} else if utils.IsNotEmpty(userIn.Email) {
-		//key := blog_const.FORGET_PASSWORD + userIn.Email + "_2"
-		//get, b := cache.GetString(key)
-		//if !b || get != userIn.Captcha {
-		//return nil, errors.New("验证码错误！")
-		//}
-		//cache.Delete(key)
+		key := blog_const.FORGET_PASSWORD + userIn.Email + "_2"
+		get, b := cache.GetString(key)
+		if !b || get != userIn.Captcha {
+			return nil, errors.New("验证码错误！")
+		}
+		cache.Delete(key)
 	} else {
 		return nil, errors.New("请输入邮箱或手机号！")
 	}

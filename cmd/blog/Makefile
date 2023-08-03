@@ -1,6 +1,6 @@
 .PHONY: all build run gotool install clean help
 
-NAME=blog_app
+NAME=blog
 BIN_DIR=../../bin/
 
 

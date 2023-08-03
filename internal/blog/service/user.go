@@ -53,7 +53,7 @@ func NewUser(c *gin.Context) *User {
 //func adminLogin(user *blog.User, userVO *model.UserVO) {
 //	var token string
 //
-//	if user.UserType != blog_const.USER_TYPE_ADMIN.Code && user.UserType != blog_const.USER_TYPE_DEV.Code {
+//	if user.UserType != blog_const.USER_TYPE_ADMIN.Captcha && user.UserType != blog_const.USER_TYPE_DEV.Captcha {
 //		userVO.Msg = "请输入管理员账号！"
 //	}
 //
@@ -68,7 +68,7 @@ func NewUser(c *gin.Context) *User {
 //		cache.Set(key, token)
 //	}
 //
-//	if user.UserType == blog_const.USER_TYPE_ADMIN.Code {
+//	if user.UserType == blog_const.USER_TYPE_ADMIN.Captcha {
 //		userVO.IsBoss = true
 //	}
 //	userVO.AccessToken = token

@@ -1,0 +1,22 @@
+version: '3'
+services:
+  redis:
+    container_name: redis
+    image: redis
+    restart: always
+    ports:
+      - 6789:6789
+    privileged: true
+#    fixme 文件目录不存在时会将文件映射成目录 所以这里配置了command会启动失败
+    command: redis-server /etc/redis/redis.conf --appendonly yes
+    volumes:
+#      - 需要自己配置映射关系
+      - /usr/blog/volumes/redis/data:/data
+      - /usr/blog/volumes/redis/conf/redis.conf:/etc/redis/redis.conf
+    networks:
+      - wannet
+
+networks:
+
+  wannet:
+    driver: bridge
