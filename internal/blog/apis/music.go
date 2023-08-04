@@ -1,8 +1,8 @@
 package apis
 
 import (
-	json2 "encoding/json"
 	"fmt"
+	"github.com/bytedance/sonic"
 	"github.com/gin-gonic/gin"
 	"io"
 	"net/http"
@@ -13,7 +13,6 @@ import (
 	"wan_go/internal/blog/vo/music/qq"
 	"wan_go/pkg/common/api"
 	"wan_go/pkg/common/db/redis"
-	"wan_go/pkg/utils"
 )
 
 type Hash func(data []byte) uint32
@@ -57,8 +56,8 @@ func Get(url string, result any) error {
 		return err
 	}
 
-	err = json2.Unmarshal(body, result)
-	fmt.Println(url, utils.GetCurrentTimestampByMill())
+	err = sonic.Unmarshal(body, result)
+	//fmt.Println(url, utils.GetCurrentTimestampByMill())
 	return err
 }
 
@@ -123,34 +122,38 @@ func (a MusicApi) RandomMusic(c *gin.Context) {
 		qqSongs.Songs = qqResult
 	} else {
 		//是否能优化？
+		//换成chan的性能是一样的
 		wg := sync.WaitGroup{}
 		var neteaseMu sync.Mutex
-		//var qqMu sync.Mutex
+		var qqMu sync.Mutex
 		netEaseResult := make([]*music.Song, 0)
 		qqResult := make([]*music.Song, 0)
 		for i := 0; i < count; i++ {
 			wg.Add(1)
 			go func() {
+				defer wg.Done()
 				song, _ := GetNeteaseHot()
-				json, _ := json2.Marshal(song)
+				json, _ := sonic.Marshal(song)
 				_ = redis.CacheSongInfo(keyNeteaseRand, song.Url, json)
 				neteaseMu.Lock()
 				netEaseResult = append(netEaseResult, song)
 				neteaseMu.Unlock()
-				wg.Done()
 			}()
-			//go func() {
-			//	song, _ := GetQQRandom()
-			//	json, _ := json2.Marshal(song)
-			//	if song == nil {
-			//		return
-			//	}
-			//	_ = blogRedis.CacheSongInfo(keyQQRand, song.Url, json)
-			//	qqMu.Lock()
-			//	qqResult = append(qqResult, song)
-			//	qqMu.Unlock()
-			//	wg.Done()
-			//}()
+		}
+		for i := 0; i < 2; i++ {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				song, _ := GetQQRandom()
+				json, _ := sonic.Marshal(song)
+				if song == nil {
+					return
+				}
+				_ = redis.CacheSongInfo(keyQQRand, song.Url, json)
+				qqMu.Lock()
+				qqResult = append(qqResult, song)
+				qqMu.Unlock()
+			}()
 		}
 		wg.Wait()
 
@@ -186,7 +189,7 @@ func (a MusicApi) SongUrl(c *gin.Context) {
 	fmt.Println(string(body))
 
 	songUrl := music.SongUrl{}
-	err = json2.Unmarshal(body, &songUrl)
+	err = sonic.Unmarshal(body, &songUrl)
 	if err != nil {
 		return
 	}
