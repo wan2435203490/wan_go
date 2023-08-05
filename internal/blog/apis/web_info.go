@@ -329,6 +329,7 @@ func (a WebInfoApi) ListTreeHole(c *gin.Context) {
 func (a WebInfoApi) InsertSort(c *gin.Context) {
 	s := service.Sort{}
 	req := dto.SaveSortReq{}
+
 	if a.MakeContextChain(c, &s.Service, &req) == nil {
 		return
 	}

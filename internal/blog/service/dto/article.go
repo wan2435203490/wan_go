@@ -8,10 +8,10 @@ import (
 
 // 更改部分字段
 type ChangeArticleReq struct {
-	ArticleId       int32 `uri:"articleId"`
-	ViewStatus      *bool `json:"viewStatus"`
-	CommentStatus   *bool `json:"commentStatus"`
-	RecommendStatus *bool `json:"recommendStatus"`
+	ArticleId       int32 `form:"articleId"`
+	ViewStatus      *bool `form:"viewStatus"`
+	CommentStatus   *bool `form:"commentStatus"`
+	RecommendStatus *bool `form:"recommendStatus"`
 }
 
 func (s *ChangeArticleReq) GetId() interface{} {
@@ -88,7 +88,7 @@ func (s *DelArticleReq) GetId() interface{} {
 type PageArticleReq struct {
 	*r.Pagination   `json:",inline"`
 	ArticleId       int32  `form:"articleId" search:"type:eq;column:id;table:article"`
-	UserId          int32  `uri:"userId" search:"type:eq;column:user_id;table:article"`
+	UserId          int32  `form:"userId" search:"type:eq;column:user_id;table:article"`
 	ArticleTitle    string `form:"articleTitle" search:"type:eq;column:article_title;table:article"`
 	RecommendStatus *bool  `form:"recommendStatus" search:"type:eq;column:recommend_status;table:article"`
 	LabelId         int32  `form:"labelId" search:"type:eq;column:label_id;table:article"`
